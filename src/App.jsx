@@ -20,20 +20,30 @@ const initialDishes = [
 ]
 
 const navItems = [
-  { key: 'home', label: 'Home' },
-  { key: 'menu', label: 'My Menu' },
-  { key: 'favorites', label: 'Favorites' },
-  { key: 'shopping', label: 'Shopping List' },
-  { key: 'settings', label: 'Settings' },
+  { key: 'home', label: 'Home', icon: 'bi-house-door' },
+  { key: 'menu', label: 'My Menu', icon: 'bi-book' },
+  { key: 'favorites', label: 'Favorites', icon: 'bi-heart' },
+  { key: 'shopping', label: 'Shopping List', icon: 'bi-cart' },
+  { key: 'family', label: 'My Family', icon: 'bi-people' },
+  { key: 'settings', label: 'Settings', icon: 'bi-gear' },
+]
+
+const familyMembers = [
+  { name: 'Alice', initial: 'A' },
+  { name: 'Bob', initial: 'B' },
+  { name: 'Charlie', initial: 'C' },
 ]
 
 function SearchBar() {
   return (
-    <input
-      className="search-bar"
-      type="text"
-      placeholder="Search dishes..."
-    />
+    <div className="search-wrapper">
+      <i className="bi-search" />
+      <input
+        className="search-bar"
+        type="text"
+        placeholder="Search dishes..."
+      />
+    </div>
   )
 }
 
@@ -44,7 +54,7 @@ function App() {
   return (
     <>
       <aside className="sidebar">
-        <p className="sidebar-brand">what4dinner</p>
+        <p className="sidebar-brand">What4Dinner</p>
         <ul className="sidebar-nav">
           {navItems.map((item) => (
             <li key={item.key}>
@@ -53,7 +63,7 @@ function App() {
                 className={page === item.key ? 'active' : ''}
                 onClick={(e) => { e.preventDefault(); setPage(item.key) }}
               >
-                {item.label}
+                <i className={item.icon} /> {item.label}
               </a>
             </li>
           ))}
@@ -79,9 +89,9 @@ function App() {
                   </div>
                 ))}
               </div>
-              <button className="guess-refresh" onClick={() => {}}>Refresh</button>
+              <button className="guess-refresh" onClick={() => {}}><i className="bi-arrow-clockwise" /> Refresh</button>
             </section>
-            <h1>My Menu</h1>
+            <h1>Top Choice</h1>
             <div className="menu-grid">
               {dishes.map((dish) => (
                 <div className="dish-card" key={dish.id}>
@@ -106,7 +116,20 @@ function App() {
             </div>
           </>
         )}
-        {page !== 'home' && page !== 'menu' && (
+        {page === 'family' && (
+          <>
+            <h1>My Family</h1>
+            <div className="family-grid">
+              {familyMembers.map((member) => (
+                <div className="family-card" key={member.name}>
+                  <div className="family-avatar">{member.initial}</div>
+                  <span className="family-name">{member.name}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        {page !== 'home' && page !== 'menu' && page !== 'family' && (
           <h1>{navItems.find((item) => item.key === page)?.label}</h1>
         )}
       </main>
