@@ -132,6 +132,7 @@ function App() {
         {page !== 'home' && page !== 'menu' && page !== 'family' && (
           <h1>{navItems.find((item) => item.key === page)?.label}</h1>
         )}
+        <button className="fab" onClick={() => {}}><i className="bi-plus-lg" /> Add new dish</button>
       </main>
     </>
   )

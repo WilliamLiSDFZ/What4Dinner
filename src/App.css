@@ -141,7 +141,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-  background: var(--bg);
+  background: var(--card-bg);
   transition: box-shadow 0.2s, border-color 0.2s;
 
   &:hover {
@@ -253,7 +253,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-  background: var(--bg);
+  background: var(--card-bg);
   transition: box-shadow 0.2s, border-color 0.2s;
 
   &:hover {
@@ -285,7 +285,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 24px;
-  background: var(--bg);
+  background: var(--card-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -315,4 +315,33 @@
   font-size: 16px;
   font-weight: 600;
   color: var(--text-h);
+}
+
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    background: var(--accent-hover, color-mix(in srgb, var(--accent) 85%, #000));
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.fab i {
+  font-size: 20px;
 }
