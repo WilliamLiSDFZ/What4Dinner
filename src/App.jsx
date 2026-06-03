@@ -10,6 +10,7 @@ import Shopping from './pages/Shopping'
 import Family from './pages/Family'
 import Settings from './pages/Settings'
 import AddDish from './pages/AddDish'
+import Callback from './pages/Callback'
 
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system')
@@ -35,6 +36,7 @@ export default function App() {
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       <Routes>
+        <Route path="callback" element={<Callback />} />
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="menu" element={<Menu />} />
