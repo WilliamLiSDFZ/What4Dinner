@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   build-and-deploy:
-    if: github.event.pull_request.merged == true
+#    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     # Optional: enable required reviewers in repo Settings → Environments → production.
     environment: production
