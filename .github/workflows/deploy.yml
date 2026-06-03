@@ -1,0 +1,96 @@
+name: Deploy to nginx
+
+# Builds the Vite app and rsyncs `dist/` to the production nginx server.
+# Triggers only when a pull request is MERGED into main — direct pushes to
+# main do not deploy. The `merged == true` guard is required because the
+# `closed` event also fires when a PR is closed without merging.
+
+on:
+  push:
+    branches: [main]
+#  pull_request:
+#    types: [closed]
+#    branches: [main]
+
+concurrency:
+  # Serialize on the destination branch so a newer merge supersedes an
+  # in-flight deploy from an earlier merge.
+  group: deploy-main
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    # Optional: enable required reviewers in repo Settings → Environments → production.
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # On pull_request events, github.sha points at a synthetic merge ref
+          # rather than the commit that just landed on main. Check out main
+          # directly so we build the actual post-merge state.
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure SSH
+        # Loads the private key into ssh-agent for the rest of the job.
+        # Add SSH_PRIVATE_KEY in repo Settings → Secrets and variables → Actions.
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Trust server host key
+        # Uses SSH_PORT if set, otherwise defaults to 22.
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy via rsync
+        # Trailing slash on dist/ copies its contents, not the directory itself.
+        # --delete removes files on the server that no longer exist in dist/.
+        # Flags: -r recursive, -l symlinks-as-symlinks, -v verbose, -z compress.
+        # We intentionally do NOT use -a (which implies -ptgoD). The deploy
+        # directory may pre-exist with a different owner than SSH_USER, and
+        # chmod/utime/chown on a directory require ownership (EPERM otherwise).
+        # nginx serves by content; file/dir perms only need to be readable.
+        run: |
+          rsync -rlvz --delete \
+            -e "ssh -p ${{ secrets.SSH_PORT || 22 }}" \
+            dist/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+
+      # Optional: reload nginx if you changed config. Requires the deploy user to have
+      # NOPASSWD sudo for `nginx -t` and `systemctl reload nginx`. Static-file-only
+      # deploys do not need a reload — leave this commented unless you need it.
+      #
+      # - name: Reload nginx
+      #   run: |
+      #     ssh -p "${{ secrets.SSH_PORT || 22 }}" \
+      #       "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+      #       'sudo nginx -t && sudo systemctl reload nginx'
+
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   SSH_HOST              public DNS name or IP of the server (e.g. example.com or 203.0.113.4)
+#   SSH_USER              unix user with write access to DEPLOY_PATH (e.g. deploy)
+#   SSH_PORT              optional; defaults to 22 if unset
+#   SSH_PRIVATE_KEY       full OpenSSH private key (-----BEGIN OPENSSH PRIVATE KEY-----…)
+#                         generate with: ssh-keygen -t ed25519 -f deploy_key -N ""
+#                         then append deploy_key.pub to ~/.ssh/authorized_keys on the server
+#   DEPLOY_PATH           absolute path nginx serves from (matches `root` in nginx config)

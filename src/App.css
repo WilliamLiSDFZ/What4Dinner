@@ -249,6 +249,16 @@
   gap: 20px;
 }
 
+.menu-status {
+  margin-top: 16px;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.menu-status.menu-error {
+  color: var(--accent);
+}
+
 .dish-card {
   border: 1px solid var(--border);
   border-radius: 10px;
