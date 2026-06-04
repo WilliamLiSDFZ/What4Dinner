@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
 import { getRecipes } from '../api'
 
 export default function Menu() {
+  const { t } = useTranslation()
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -19,11 +21,11 @@ export default function Menu() {
   return (
     <>
       <SearchBar />
-      <h1>My Menu</h1>
-      {loading && <p className="menu-status">Loading recipes…</p>}
-      {error && <p className="menu-status menu-error">Couldn't load recipes: {error}</p>}
+      <h1>{t('menu.title')}</h1>
+      {loading && <p className="menu-status">{t('menu.loading')}</p>}
+      {error && <p className="menu-status menu-error">{t('menu.error', { message: error })}</p>}
       {!loading && !error && recipes.length === 0 && (
-        <p className="menu-status">No recipes yet.</p>
+        <p className="menu-status">{t('menu.empty')}</p>
       )}
       {!loading && !error && recipes.length > 0 && (
         <div className="menu-grid">

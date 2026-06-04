@@ -16,13 +16,14 @@ export const initialDishes = [
   { id: 8, name: 'Mushroom Risotto', description: 'Creamy arborio rice with mixed mushrooms and parmesan.', ingredients: ['arborio rice', 'mushrooms', 'parmesan', 'onion', 'garlic', 'white wine'] },
 ]
 
+// `key` maps to the i18n nav.<key> translation; labels are resolved in Layout.
 export const navItems = [
-  { key: 'home', path: '/', label: 'Home', icon: 'bi-house-door' },
-  { key: 'menu', path: '/menu', label: 'My Menu', icon: 'bi-book' },
-  { key: 'favorites', path: '/favorites', label: 'Favorites', icon: 'bi-heart' },
-  { key: 'shopping', path: '/shopping', label: 'Shopping List', icon: 'bi-cart' },
-  { key: 'family', path: '/family', label: 'My Family', icon: 'bi-people' },
-  { key: 'settings', path: '/settings', label: 'Settings', icon: 'bi-gear' },
+  { key: 'home', path: '/', icon: 'bi-house-door' },
+  { key: 'menu', path: '/menu', icon: 'bi-book' },
+  { key: 'favorites', path: '/favorites', icon: 'bi-heart' },
+  { key: 'shopping', path: '/shopping', icon: 'bi-cart' },
+  { key: 'family', path: '/family', icon: 'bi-people' },
+  { key: 'settings', path: '/settings', icon: 'bi-gear' },
 ]
 
 export const favoriteDishes = [

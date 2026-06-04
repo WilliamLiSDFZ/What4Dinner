@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "home": "Home",
+    "menu": "My Menu",
+    "favorites": "Favorites",
+    "shopping": "Shopping List",
+    "family": "My Family",
+    "settings": "Settings"
+  },
+  "fab": {
+    "addDish": "Add new dish"
+  },
+  "search": {
+    "placeholder": "Search dishes..."
+  },
+  "home": {
+    "guessYouLike": "Guess you like",
+    "refresh": "Refresh",
+    "topChoice": "Top Choice"
+  },
+  "menu": {
+    "title": "My Menu",
+    "loading": "Loading recipes…",
+    "error": "Couldn't load recipes: {{message}}",
+    "empty": "No recipes yet."
+  },
+  "favorites": {
+    "title": "Favorites"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "language": "Language"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "family": {
+    "title": "My Family",
+    "addMember": "Add Member"
+  },
+  "addDish": {
+    "return": "Return",
+    "confirmLeave": "Are you sure you want to leave? Your changes will be lost.",
+    "cancel": "Cancel",
+    "leave": "Leave"
+  },
+  "callback": {
+    "signingIn": "Signing you in…",
+    "failed": "Sign-in failed: {{message}}"
+  }
+}

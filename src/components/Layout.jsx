@@ -1,9 +1,11 @@
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { navItems } from '../data'
 
 export default function Layout() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { t } = useTranslation()
 
   return (
     <>
@@ -13,7 +15,7 @@ export default function Layout() {
           {navItems.map((item) => (
             <li key={item.key}>
               <NavLink to={item.path} end={item.path === '/'}>
-                <i className={item.icon} /> {item.label}
+                <i className={item.icon} /> {t(`nav.${item.key}`)}
               </NavLink>
             </li>
           ))}
@@ -28,7 +30,7 @@ export default function Layout() {
         <Outlet />
         {pathname !== '/add' && (
           <button className="fab" onClick={() => navigate('/add')}>
-            <i className="bi-plus-lg" /> Add new dish
+            <i className="bi-plus-lg" /> {t('fab.addDish')}
           </button>
         )}
       </main>

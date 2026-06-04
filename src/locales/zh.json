@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "home": "首页",
+    "menu": "我的菜单",
+    "favorites": "收藏",
+    "shopping": "购物清单",
+    "family": "我的家庭",
+    "settings": "设置"
+  },
+  "fab": {
+    "addDish": "添加新菜"
+  },
+  "search": {
+    "placeholder": "搜索菜品…"
+  },
+  "home": {
+    "guessYouLike": "猜你喜欢",
+    "refresh": "换一批",
+    "topChoice": "热门推荐"
+  },
+  "menu": {
+    "title": "我的菜单",
+    "loading": "正在加载菜谱…",
+    "error": "无法加载菜谱：{{message}}",
+    "empty": "还没有菜谱。"
+  },
+  "favorites": {
+    "title": "收藏"
+  },
+  "settings": {
+    "title": "设置",
+    "appearance": "外观",
+    "language": "语言"
+  },
+  "theme": {
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色"
+  },
+  "family": {
+    "title": "我的家庭",
+    "addMember": "添加成员"
+  },
+  "addDish": {
+    "return": "返回",
+    "confirmLeave": "确定要离开吗？您的更改将会丢失。",
+    "cancel": "取消",
+    "leave": "离开"
+  },
+  "callback": {
+    "signingIn": "正在登录…",
+    "failed": "登录失败：{{message}}"
+  }
+}
