@@ -50,5 +50,8 @@
   "callback": {
     "signingIn": "Signing you in…",
     "failed": "Sign-in failed: {{message}}"
+  },
+  "auth": {
+    "logout": "Log out"
   }
 }

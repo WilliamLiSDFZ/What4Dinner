@@ -11,13 +11,20 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+// Signing out is purely client-side: the JWT is stateless and the auth service
+// exposes no revoke endpoint, so dropping the stored token is the whole
+// operation. Shared by the logout button and the 401 handler below.
+export function logout() {
+  localStorage.removeItem('auth_token')
+  window.location.href = LOGIN_URL
+}
+
 // Shared wrapper for token-authenticated requests. A 401 means the stored token
 // is missing/expired, so drop it and bounce the user to the auth service login.
 async function apiFetch(url, options) {
   const res = await fetch(url, options)
   if (res.status === 401) {
-    localStorage.removeItem('auth_token')
-    window.location.href = LOGIN_URL
+    logout()
     throw new Error('Unauthorized — redirecting to login')
   }
   return res

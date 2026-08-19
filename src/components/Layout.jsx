@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { navItems } from '../data'
+import { logout } from '../api'
 import logoMark from '../assets/logo-mark.png'
 
 export default function Layout() {
@@ -28,6 +29,10 @@ export default function Layout() {
           <div className="sidebar-avatar">W</div>
           <span className="sidebar-user-name">William</span>
         </div>
+        <button className="sidebar-logout" onClick={logout} aria-label={t('auth.logout')}>
+          <i className="bi-box-arrow-right" />
+          <span className="sidebar-logout-label">{t('auth.logout')}</span>
+        </button>
       </aside>
 
       <main className="main-content">

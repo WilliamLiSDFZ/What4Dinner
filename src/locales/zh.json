@@ -50,5 +50,8 @@
   "callback": {
     "signingIn": "正在登录…",
     "failed": "登录失败：{{message}}"
+  },
+  "auth": {
+    "logout": "退出登录"
   }
 }
