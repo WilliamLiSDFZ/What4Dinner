@@ -15,11 +15,11 @@ There is no test runner configured.
 
 ## Architecture
 
-What4Dinner is a client-only meal-planning SPA. React 19 + Vite 8, plain JSX (no TypeScript — `@types/*` are present but unused). There is **no backend and no API layer**: every page renders from static exports in `src/data.js`.
+What4Dinner is a meal-planning SPA. React 19 + Vite 8, plain JSX (no TypeScript — `@types/*` are present but unused). `src/api.js` is the sole API layer, talking to the recipe backend (`backendAPI.md`) and the separate auth service (`auth-API.md`); pages that have not been wired up yet still render from static exports in `src/data.js`.
 
 - **Routing** — `react-router-dom` v7. `main.jsx` mounts `<BrowserRouter>`; `App.jsx` declares all routes. A single parent `<Route element={<Layout />}>` renders the sidebar + `<Outlet>`; child routes (`index`/home, `menu`, `favorites`, `shopping`, `family`, `settings`, `add`) are the pages in `src/pages/`. To add a page: create the component, add a `<Route>` in `App.jsx`, and (if it belongs in the sidebar) add an entry to `navItems` in `src/data.js`. Note: the README claims "no router" — that is stale; the app uses react-router.
 
-- **Data** — `src/data.js` holds all seed content: `suggestions`, `initialDishes` (with `ingredients`), `favoriteDishes`, `familyMembers`, and `navItems`. Pages are presentational and read these directly. Nothing is persisted except theme. The Shopping page derives its consolidated ingredient list at render time from `initialDishes` (flatMap → Set → sort).
+- **Data** — `src/data.js` holds the remaining seed content: `suggestions`, `initialDishes` (with `ingredients`), `familyMembers`, and `navItems`. Most pages are presentational and read these directly, but Menu and Favorites now fetch from the backend via `src/api.js` (see `backendAPI.md`). Nothing is persisted except theme. The Shopping page derives its consolidated ingredient list at render time from `initialDishes` (flatMap → Set → sort).
 
 - **Theme** — `ThemeContext` (`src/ThemeContext.js`) carries `{ theme, setTheme }` where theme is `'light' | 'dark' | 'system'`. `App.jsx` owns the state, persists it to `localStorage` under `theme`, and toggles a `.dark` class on `document.documentElement` (resolving `system` via `matchMedia`). All theming is CSS-variable-driven off `:root` / `:root.dark` — components never branch on theme in JS.
 

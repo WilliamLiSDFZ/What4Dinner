@@ -25,7 +25,13 @@
     "empty": "还没有菜谱。"
   },
   "favorites": {
-    "title": "收藏"
+    "title": "收藏",
+    "loading": "正在加载收藏…",
+    "error": "无法加载收藏：{{message}}",
+    "empty": "还没有收藏。",
+    "rowActions": "更多操作",
+    "unfavorite": "取消收藏",
+    "unfavoriteFailed": "取消收藏失败：{{message}}"
   },
   "settings": {
     "title": "设置",

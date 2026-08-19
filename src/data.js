@@ -26,19 +26,6 @@ export const navItems = [
   { key: 'settings', path: '/settings', icon: 'bi-gear' },
 ]
 
-export const favoriteDishes = [
-  { rank: 1, name: 'Pasta Carbonara', description: 'Creamy Italian pasta with pancetta, egg, and parmesan.' },
-  { rank: 2, name: 'Salmon Teriyaki', description: 'Pan-seared salmon glazed with homemade teriyaki sauce.' },
-  { rank: 3, name: 'Margherita Pizza', description: 'Classic pizza with fresh mozzarella, basil, and tomato.' },
-  { rank: 4, name: 'Chicken Stir Fry', description: 'Quick veggie and chicken stir fry with soy-ginger sauce.' },
-  { rank: 5, name: 'Mushroom Risotto', description: 'Creamy arborio rice with mixed mushrooms and parmesan.' },
-  { rank: 6, name: 'Beef Tacos', description: 'Seasoned ground beef tacos with salsa, cheese, and cilantro.' },
-  { rank: 7, name: 'Greek Salad', description: 'Cucumber, tomato, olives, and feta with lemon dressing.' },
-  { rank: 8, name: 'Vegetable Curry', description: 'Hearty coconut curry loaded with seasonal vegetables.' },
-  { rank: 9, name: 'Braised Short Ribs', description: 'Tender beef short ribs slow-braised in red wine and herbs.' },
-  { rank: 10, name: 'Tomato Basil Soup', description: 'Classic creamy tomato soup with fresh basil and croutons.' },
-]
-
 export const familyMembers = [
   { name: 'Alice', initial: 'A' },
   { name: 'Bob', initial: 'B' },

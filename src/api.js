@@ -45,3 +45,23 @@ export async function getRecipes() {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+// Recipe summaries the user has favorited, newest favorite first. Same shape as
+// getRecipes — favorites are not scoped to the recipe's owner.
+export async function getFavorites() {
+  const res = await apiFetch(`${BASE_URL}/favorite`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// Takes the desired state rather than toggling, so retries and double-clicks are
+// idempotent. Passing `true` favorites a recipe, `false` unfavorites it.
+export async function setFavorite(recipeId, favorited) {
+  const res = await apiFetch(`${BASE_URL}/favorite/${recipeId}`, {
+    method: 'PATCH',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ favorited }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}

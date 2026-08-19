@@ -388,6 +388,7 @@
   gap: 20px;
   padding: 16px 0;
   border-bottom: 1px solid var(--border);
+  position: relative;
 }
 
 .favorites-item:last-child {
@@ -414,6 +415,87 @@
   font-size: 15px;
   line-height: 150%;
   color: var(--text);
+}
+
+.favorites-actions {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Revealed with opacity rather than display so hovering a row never reflows the
+   list. pointer-events is flipped alongside it so the invisible button can't be
+   clicked by accident. */
+.favorites-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
+}
+
+.favorites-item:hover .favorites-dots,
+.favorites-item:focus-within .favorites-dots,
+.favorites-dots[aria-expanded='true'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Touch devices never fire hover, so keep the affordance permanently visible. */
+@media (hover: none) {
+  .favorites-dots {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.favorites-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 168px;
+  padding: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.favorites-unfavorite {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
 }
 
 .family-add-card {

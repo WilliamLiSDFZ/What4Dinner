@@ -25,7 +25,13 @@
     "empty": "No recipes yet."
   },
   "favorites": {
-    "title": "Favorites"
+    "title": "Favorites",
+    "loading": "Loading favorites…",
+    "error": "Couldn't load favorites: {{message}}",
+    "empty": "No favorites yet.",
+    "rowActions": "Row actions",
+    "unfavorite": "Unfavorite",
+    "unfavoriteFailed": "Couldn't unfavorite: {{message}}"
   },
   "settings": {
     "title": "Settings",
