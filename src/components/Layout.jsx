@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { navItems } from '../data'
+import logoMark from '../assets/logo-mark.png'
 
 export default function Layout() {
   const navigate = useNavigate()
@@ -10,7 +11,10 @@ export default function Layout() {
   return (
     <>
       <aside className="sidebar">
-        <p className="sidebar-brand">What4Dinner</p>
+        <p className="sidebar-brand">
+          <img src={logoMark} alt="" className="sidebar-logo" />
+          What4Dinner
+        </p>
         <ul className="sidebar-nav">
           {navItems.map((item) => (
             <li key={item.key}>

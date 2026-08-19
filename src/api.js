@@ -4,9 +4,23 @@ const BASE_URL = '/api/v1'
 // Override in local dev with VITE_AUTH_BASE_URL=http://localhost:8081/api
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || 'https://auth.what4dinner.today/api'
 
+const LOGIN_URL = 'https://auth.what4dinner.today/login'
+
 function authHeaders() {
   const token = localStorage.getItem('auth_token')
   return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+// Shared wrapper for token-authenticated requests. A 401 means the stored token
+// is missing/expired, so drop it and bounce the user to the auth service login.
+async function apiFetch(url, options) {
+  const res = await fetch(url, options)
+  if (res.status === 401) {
+    localStorage.removeItem('auth_token')
+    window.location.href = LOGIN_URL
+    throw new Error('Unauthorized — redirecting to login')
+  }
+  return res
 }
 
 // Trade the short-lived one-time `code` from the OAuth callback for the
@@ -20,7 +34,7 @@ export async function exchangeCode(code) {
 }
 
 export async function getRecipes() {
-  const res = await fetch(`${BASE_URL}/recipe`, { headers: authHeaders() })
+  const res = await apiFetch(`${BASE_URL}/recipe`, { headers: authHeaders() })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }

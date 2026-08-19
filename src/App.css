@@ -20,6 +20,9 @@
 }
 
 .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--heading);
   font-size: 22px;
   font-weight: 600;
@@ -34,6 +37,12 @@
     font-size: 20px;
     white-space: nowrap;
   }
+}
+
+.sidebar-logo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .sidebar-nav {
