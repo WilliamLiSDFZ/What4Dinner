@@ -51,7 +51,11 @@
     "return": "Return",
     "confirmLeave": "Are you sure you want to leave? Your changes will be lost.",
     "cancel": "Cancel",
-    "leave": "Leave"
+    "leave": "Leave",
+    "uploadPrompt": "Drop recipe photos here",
+    "uploadHint": "or click to browse",
+    "removePhoto": "Remove photo",
+    "manualEntry": "Enter manually"
   },
   "callback": {
     "signingIn": "Signing you in…",

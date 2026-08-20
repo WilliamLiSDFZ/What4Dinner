@@ -51,7 +51,11 @@
     "return": "返回",
     "confirmLeave": "确定要离开吗？您的更改将会丢失。",
     "cancel": "取消",
-    "leave": "离开"
+    "leave": "离开",
+    "uploadPrompt": "拖入菜谱照片",
+    "uploadHint": "或点击选择文件",
+    "removePhoto": "移除照片",
+    "manualEntry": "手动输入"
   },
   "callback": {
     "signingIn": "正在登录…",

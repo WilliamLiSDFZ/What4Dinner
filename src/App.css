@@ -694,6 +694,114 @@
   }
 }
 
+.add-dish-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 220px;
+  margin-top: 24px;
+  padding: 32px;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--card-bg);
+  border: 2px dashed var(--accent-border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &:hover,
+  &.is-dragging {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--text-h);
+  }
+}
+
+.add-dish-dropzone i {
+  font-size: 32px;
+  color: var(--accent);
+}
+
+.add-dish-hint {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.add-dish-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+
+.add-dish-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.add-dish-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Sits on top of arbitrary photo content, so it carries its own dark scrim
+   rather than relying on a theme token. */
+.add-dish-thumb-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.75);
+  }
+}
+
+.add-dish-manual {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
