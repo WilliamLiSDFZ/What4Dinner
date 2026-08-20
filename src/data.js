@@ -25,9 +25,3 @@ export const navItems = [
   { key: 'family', path: '/family', icon: 'bi-people' },
   { key: 'settings', path: '/settings', icon: 'bi-gear' },
 ]
-
-export const familyMembers = [
-  { name: 'Alice', initial: 'A' },
-  { name: 'Bob', initial: 'B' },
-  { name: 'Charlie', initial: 'C' },
-]

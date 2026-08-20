@@ -35,8 +35,14 @@
   },
   "settings": {
     "title": "设置",
+    "account": "账户",
     "appearance": "外观",
-    "language": "语言"
+    "language": "语言",
+    "username": "用户名",
+    "email": "邮箱",
+    "memberSince": "注册于",
+    "loading": "正在加载个人信息…",
+    "error": "无法加载个人信息：{{message}}"
   },
   "theme": {
     "system": "跟随系统",
@@ -45,7 +51,11 @@
   },
   "family": {
     "title": "我的家庭",
-    "addMember": "添加成员"
+    "addMember": "添加成员",
+    "loading": "正在加载家庭…",
+    "error": "无法加载家庭：{{message}}",
+    "empty": "还没有家庭成员。",
+    "you": "我"
   },
   "addDish": {
     "return": "返回",

@@ -65,3 +65,20 @@ export async function setFavorite(recipeId, favorited) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+// The signed-in user's own profile. The auth service only mints tokens and has
+// no profile endpoint, so identity comes from the recipe backend, scoped by the
+// JWT `sub` claim rather than any id we send.
+export async function getMe() {
+  const res = await apiFetch(`${BASE_URL}/user/me`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// The caller's family and its members, oldest member first. The family is
+// resolved server-side from the JWT, so there is nothing to pass in.
+export async function getFamily() {
+  const res = await apiFetch(`${BASE_URL}/family`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}

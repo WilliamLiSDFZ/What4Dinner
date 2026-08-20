@@ -35,8 +35,14 @@
   },
   "settings": {
     "title": "Settings",
+    "account": "Account",
     "appearance": "Appearance",
-    "language": "Language"
+    "language": "Language",
+    "username": "Username",
+    "email": "Email",
+    "memberSince": "Member since",
+    "loading": "Loading profile…",
+    "error": "Couldn't load profile: {{message}}"
   },
   "theme": {
     "system": "System",
@@ -45,7 +51,11 @@
   },
   "family": {
     "title": "My Family",
-    "addMember": "Add Member"
+    "addMember": "Add Member",
+    "loading": "Loading family…",
+    "error": "Couldn't load family: {{message}}",
+    "empty": "No family members yet.",
+    "you": "You"
   },
   "addDish": {
     "return": "Return",
