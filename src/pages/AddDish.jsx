@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { getIngredients, createIngredient } from '../api'
 
 export default function AddDish() {
   const { t } = useTranslation()
@@ -20,9 +21,22 @@ export default function AddDish() {
   // removing a slide can re-clamp it in the same updater.
   const [steps, setSteps] = useState([])
   const [lightboxUrl, setLightboxUrl] = useState(null)
+  // Only one ingredient picker is open at a time, so its state lives up here
+  // rather than being duplicated per row.
+  const [pickerStepId, setPickerStepId] = useState(null)
+  const [ingredients, setIngredients] = useState([])
+  const [ingredientsLoading, setIngredientsLoading] = useState(false)
+  const [ingredientsError, setIngredientsError] = useState(null)
+  const [search, setSearch] = useState('')
+  // Step the ingredient being created should attach to; null when the dialog is closed.
+  const [creatingFor, setCreatingFor] = useState(null)
+  const [newName, setNewName] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState(null)
   const inputRef = useRef(null)
   // One hidden file input per step row, keyed by step id.
   const stepInputs = useRef({})
+  const pickerRef = useRef(null)
   const navigate = useNavigate()
 
   // Every createObjectURL needs a matching revoke or the blob is held for the
@@ -48,6 +62,23 @@ export default function AddDish() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [lightboxUrl])
 
+  // Dismiss the picker on Escape or a click outside it, as the Favorites row
+  // menu does. The create dialog closes the picker first, so there is no
+  // ambiguity about which one Escape targets.
+  useEffect(() => {
+    if (!pickerStepId) return
+    const onKeyDown = (e) => { if (e.key === 'Escape') setPickerStepId(null) }
+    const onPointerDown = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) setPickerStepId(null)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [pickerStepId])
+
   function addFiles(fileList) {
     // Mint the ids and object URLs out here: doing it inside the updater would
     // run twice in development and leak the first set of blob URLs.
@@ -69,7 +100,7 @@ export default function AddDish() {
     // Steps start out required; unticking marks one as skippable.
     setSteps((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), instruction: '', required: true, images: [], imageIndex: 0 },
+      { id: crypto.randomUUID(), instruction: '', required: true, ingredients: [], images: [], imageIndex: 0 },
     ])
   }
 
@@ -105,6 +136,75 @@ export default function AddDish() {
       return { ...step, images: remaining, imageIndex: Math.min(step.imageIndex, Math.max(remaining.length - 1, 0)) }
     }))
   }
+
+  // Re-fetched on every open so an ingredient created from another step shows up
+  // without a reload. Clicking the same step's button again just closes it.
+  function togglePicker(stepId) {
+    if (pickerStepId === stepId) {
+      setPickerStepId(null)
+      return
+    }
+    setPickerStepId(stepId)
+    setSearch('')
+    setIngredientsError(null)
+    setIngredientsLoading(true)
+    getIngredients()
+      .then((data) => setIngredients(data))
+      .catch((err) => setIngredientsError(err.message))
+      .finally(() => setIngredientsLoading(false))
+  }
+
+  function addIngredient(stepId, ingredient) {
+    setSteps((prev) => prev.map((step) => {
+      if (step.id !== stepId) return step
+      if (step.ingredients.some((i) => i.id === ingredient.id)) return step
+      const { id, canonicalName } = ingredient
+      return { ...step, ingredients: [...step.ingredients, { id, canonicalName }] }
+    }))
+  }
+
+  function removeIngredient(stepId, ingredientId) {
+    setSteps((prev) => prev.map((step) => (
+      step.id === stepId
+        ? { ...step, ingredients: step.ingredients.filter((i) => i.id !== ingredientId) }
+        : step
+    )))
+  }
+
+  function openCreateDialog(stepId) {
+    // Closing the picker keeps its outside-click handler from firing on clicks
+    // inside the dialog.
+    setPickerStepId(null)
+    setCreatingFor(stepId)
+    setNewName('')
+    setCreateError(null)
+  }
+
+  async function submitNewIngredient() {
+    const name = newName.trim()
+    if (!name) return
+    setCreating(true)
+    setCreateError(null)
+    try {
+      const created = await createIngredient(name)
+      addIngredient(creatingFor, created)
+      setCreatingFor(null)
+      setNewName('')
+    } catch (err) {
+      // The backend rejects a name the family already has; everything else is
+      // reported verbatim.
+      setCreateError(
+        err.message === 'HTTP 409'
+          ? t('addDish.ingredientExists')
+          : t('addDish.createFailed', { message: err.message }),
+      )
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const searchTerm = search.trim().toLowerCase()
+  const matches = ingredients.filter((i) => i.canonicalName.toLowerCase().includes(searchTerm))
 
   return (
     <>
@@ -204,14 +304,24 @@ export default function AddDish() {
                   <li className="step-row" key={step.id}>
                     <div className="step-index">
                       <span className="step-number">{index + 1}</span>
-                      <button
-                        type="button"
-                        className="step-delete"
-                        aria-label={t('addDish.deleteStep')}
-                        onClick={() => deleteStep(step.id)}
-                      >
-                        <i className="bi-trash" />
-                      </button>
+                      <div className="step-index-tools">
+                        <label className="step-required">
+                          <input
+                            type="checkbox"
+                            checked={step.required}
+                            onChange={(e) => updateStep(step.id, { required: e.target.checked })}
+                          />
+                          {t('addDish.stepRequired')}
+                        </label>
+                        <button
+                          type="button"
+                          className="step-delete"
+                          aria-label={t('addDish.deleteStep')}
+                          onClick={() => deleteStep(step.id)}
+                        >
+                          <i className="bi-trash" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="step-body">
@@ -222,14 +332,95 @@ export default function AddDish() {
                         placeholder={t('addDish.stepPlaceholder')}
                         onChange={(e) => updateStep(step.id, { instruction: e.target.value })}
                       />
-                      <label className="step-required">
-                        <input
-                          type="checkbox"
-                          checked={step.required}
-                          onChange={(e) => updateStep(step.id, { required: e.target.checked })}
-                        />
-                        {t('addDish.stepRequired')}
-                      </label>
+
+                      <div className="step-ingredients">
+                        {step.ingredients.map((ingredient) => (
+                          <span className="ingredient-pill" key={ingredient.id}>
+                            {ingredient.canonicalName}
+                            <button
+                              type="button"
+                              className="ingredient-pill-remove"
+                              aria-label={t('addDish.removeIngredient')}
+                              onClick={() => removeIngredient(step.id, ingredient.id)}
+                            >
+                              <i className="bi-x" />
+                            </button>
+                          </span>
+                        ))}
+
+                        {/* margin-left: auto on the anchor pins the + to the right end. */}
+                        <div
+                          className="ingredient-anchor"
+                          ref={pickerStepId === step.id ? pickerRef : null}
+                        >
+                          <button
+                            type="button"
+                            className="ingredient-add"
+                            aria-haspopup="listbox"
+                            aria-expanded={pickerStepId === step.id}
+                            aria-label={t('addDish.addIngredient')}
+                            onClick={() => togglePicker(step.id)}
+                          >
+                            <i className="bi-plus-lg" />
+                          </button>
+
+                          {pickerStepId === step.id && (
+                            <div className="ingredient-picker">
+                              <input
+                                className="ingredient-search"
+                                type="text"
+                                value={search}
+                                placeholder={t('addDish.searchIngredient')}
+                                onChange={(e) => setSearch(e.target.value)}
+                              />
+                              {ingredientsLoading && (
+                                <p className="ingredient-picker-status">{t('addDish.ingredientsLoading')}</p>
+                              )}
+                              {ingredientsError && (
+                                <p className="ingredient-picker-status menu-error">
+                                  {t('addDish.ingredientsError', { message: ingredientsError })}
+                                </p>
+                              )}
+                              {!ingredientsLoading && !ingredientsError && matches.length === 0 && (
+                                <p className="ingredient-picker-status">
+                                  {ingredients.length === 0
+                                    ? t('addDish.ingredientsEmpty')
+                                    : t('addDish.noMatches')}
+                                </p>
+                              )}
+                              {!ingredientsLoading && !ingredientsError && matches.length > 0 && (
+                                <ul className="ingredient-options" role="listbox">
+                                  {matches.map((ingredient) => {
+                                    const added = step.ingredients.some((i) => i.id === ingredient.id)
+                                    return (
+                                      <li key={ingredient.id}>
+                                        <button
+                                          type="button"
+                                          className="ingredient-option"
+                                          disabled={added}
+                                          onClick={() => addIngredient(step.id, ingredient)}
+                                        >
+                                          {ingredient.canonicalName}
+                                          {added && (
+                                            <span className="ingredient-option-added">{t('addDish.added')}</span>
+                                          )}
+                                        </button>
+                                      </li>
+                                    )
+                                  })}
+                                </ul>
+                              )}
+                              <button
+                                type="button"
+                                className="ingredient-create"
+                                onClick={() => openCreateDialog(step.id)}
+                              >
+                                <i className="bi-plus-lg" /> {t('addDish.newIngredient')}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="step-media">
@@ -319,13 +510,55 @@ export default function AddDish() {
               </button>
             </div>
 
-            {/* Only the title is required — the backend allows a null description. */}
-            <button type="submit" className="add-dish-save" disabled={!title.trim()}>
+            {/* Floats bottom-right on .fab — position: fixed places it against the
+                viewport, so it can stay inside the form and keep submitting.
+                Only the title is required; the backend allows a null description. */}
+            <button type="submit" className="fab add-dish-save" disabled={!title.trim()}>
               {t('addDish.save')}
             </button>
           </form>
         )}
       </div>
+
+      {creatingFor && (
+        // Nested inside the outer <form>, so the confirm button stays type="button"
+        // — a submit here would try to submit the whole recipe.
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <label className="add-dish-label" htmlFor="new-ingredient">
+              {t('addDish.ingredientName')}
+            </label>
+            <input
+              id="new-ingredient"
+              className="add-dish-input ingredient-name-input"
+              type="text"
+              value={newName}
+              autoFocus
+              placeholder={t('addDish.ingredientNamePlaceholder')}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewIngredient() } }}
+            />
+            {createError && <p className="menu-status menu-error">{createError}</p>}
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-cancel"
+                onClick={() => setCreatingFor(null)}
+              >
+                {t('addDish.cancel')}
+              </button>
+              <button
+                type="button"
+                className="modal-confirm"
+                disabled={creating || !newName.trim()}
+                onClick={submitNewIngredient}
+              >
+                {creating ? t('addDish.creating') : t('addDish.create')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {lightboxUrl && (
         // Clicking anywhere on the scrim closes it; the image swallows its own

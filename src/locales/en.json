@@ -79,7 +79,22 @@
     "addStepPhoto": "Add photo",
     "prevPhoto": "Previous photo",
     "nextPhoto": "Next photo",
-    "enlargePhoto": "Enlarge photo"
+    "enlargePhoto": "Enlarge photo",
+    "addIngredient": "Add ingredient",
+    "removeIngredient": "Remove ingredient",
+    "searchIngredient": "Search ingredients\u2026",
+    "ingredientsLoading": "Loading ingredients\u2026",
+    "ingredientsError": "Couldn't load ingredients: {{message}}",
+    "ingredientsEmpty": "No ingredients yet.",
+    "noMatches": "No matching ingredients.",
+    "added": "Added",
+    "newIngredient": "New ingredient",
+    "ingredientName": "Ingredient name",
+    "ingredientNamePlaceholder": "e.g. Tomato",
+    "create": "Create",
+    "creating": "Creating\u2026",
+    "ingredientExists": "That ingredient already exists.",
+    "createFailed": "Couldn't create: {{message}}"
   },
   "callback": {
     "signingIn": "Signing you in…",

@@ -858,10 +858,14 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  /* .add-dish-page is flex: 1, so without a cap the fields span the whole
-     main-content width on a desktop window. */
-  max-width: 640px;
-  margin-top: 24px;
+  width: 70%;
+  /* Capped so the fields stay readable on an ultra-wide monitor; the auto
+     margins are what centre it in the page. */
+  max-width: 1100px;
+  margin: 24px auto 0;
+  /* Clearance for the floating Save button, which would otherwise cover the
+     Add step button once the page is scrolled to the end. */
+  padding-bottom: 96px;
 }
 
 .add-dish-field {
@@ -908,26 +912,15 @@
   resize: vertical;
 }
 
-.add-dish-save {
-  align-self: flex-start;
-  padding: 8px 20px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #fff;
+/* Rides on .fab for its shape, placement and hover; only the disabled state
+   differs. :hover still matches a disabled button, so the doubled selector is
+   needed to outrank .fab:hover. */
+.add-dish-save:disabled,
+.add-dish-save:disabled:hover {
   background: var(--accent);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
-
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent) 85%, #000);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .add-dish-steps {
@@ -961,12 +954,16 @@
   background: var(--border);
 }
 
+/* Stretching to the row's full height makes 50% the row's centre line, and the
+   number is the only in-flow child, so it lands exactly on it. Centring the
+   number *and* the delete button as a group would push the number above it. */
 .step-index {
   flex: 0 0 15%;
+  align-self: stretch;
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
 }
 
 .step-number {
@@ -983,6 +980,20 @@
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 10px;
+}
+
+/* Out of flow, so the number stays on the row's centre line no matter how much
+   sits under it. 26px = half the 36px badge + the gap that separates them. */
+.step-index-tools {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 .step-delete {
@@ -1022,8 +1033,11 @@
 .step-required {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 130%;
+  text-align: center;
   color: var(--text);
   cursor: pointer;
 }
@@ -1034,6 +1048,184 @@
   margin: 0;
   accent-color: var(--accent);
   cursor: pointer;
+}
+
+.step-ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ingredient-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 12px;
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+}
+
+.ingredient-pill-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--accent-border);
+  }
+}
+
+/* margin-left: auto is what pins the + to the right end of the row. */
+.ingredient-anchor {
+  position: relative;
+  margin-left: auto;
+}
+
+.ingredient-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed var(--accent-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
+}
+
+/* Floats over page content, so it uses --bg rather than the semi-transparent
+   --card-bg. Sits under .modal-overlay's z-index 200. */
+.ingredient-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 240px;
+  max-height: 300px;
+  padding: 8px;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.ingredient-search {
+  width: 100%;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: var(--text);
+    opacity: 0.65;
+  }
+
+  &:focus {
+    border-color: var(--accent-border);
+  }
+}
+
+.ingredient-options {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+}
+
+.ingredient-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: var(--text-h);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-bg);
+  }
+
+  &:disabled {
+    color: var(--text);
+    cursor: default;
+  }
+}
+
+.ingredient-option-added {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.ingredient-picker-status {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ingredient-create {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 6px 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+  }
+}
+
+.ingredient-name-input {
+  margin-bottom: 16px;
 }
 
 .step-media {
@@ -1195,13 +1387,26 @@
 
 /* The 15% / 25% columns collapse below a phone width; stack them instead. */
 @media (max-width: 768px) {
+  .add-dish-form {
+    width: 100%;
+  }
+
   .step-row {
     flex-wrap: wrap;
   }
 
+  /* Stacked rows have no tall column to centre against, so the number and the
+     delete button go back to sitting side by side in normal flow. */
   .step-index {
     flex: 0 0 auto;
+    align-self: auto;
+    gap: 8px;
+  }
+
+  .step-index-tools {
+    position: static;
     flex-direction: row;
+    margin-top: 0;
   }
 
   .step-body,

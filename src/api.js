@@ -82,3 +82,23 @@ export async function getFamily() {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+// Ingredients belong to the caller's family, resolved from the JWT, so there is
+// nothing to pass in. Newest first.
+export async function getIngredients() {
+  const res = await apiFetch(`${BASE_URL}/ingredient`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// `categoryId` is optional and no endpoint lists the categories yet, so callers
+// leave it null. A 409 means the family already has an ingredient by that name.
+export async function createIngredient(name, categoryId = null) {
+  const res = await apiFetch(`${BASE_URL}/ingredient`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, categoryId }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}

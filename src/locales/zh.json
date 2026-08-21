@@ -79,7 +79,22 @@
     "addStepPhoto": "添加图片",
     "prevPhoto": "上一张",
     "nextPhoto": "下一张",
-    "enlargePhoto": "放大查看"
+    "enlargePhoto": "放大查看",
+    "addIngredient": "添加食材",
+    "removeIngredient": "移除食材",
+    "searchIngredient": "搜索食材\u2026",
+    "ingredientsLoading": "正在加载食材\u2026",
+    "ingredientsError": "无法加载食材：{{message}}",
+    "ingredientsEmpty": "还没有食材。",
+    "noMatches": "没有匹配的食材。",
+    "added": "已添加",
+    "newIngredient": "新建食材",
+    "ingredientName": "食材名称",
+    "ingredientNamePlaceholder": "例如：西红柿",
+    "create": "创建",
+    "creating": "正在创建\u2026",
+    "ingredientExists": "这个食材已经存在。",
+    "createFailed": "创建失败：{{message}}"
   },
   "callback": {
     "signingIn": "正在登录…",
