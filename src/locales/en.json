@@ -70,7 +70,16 @@
     "titlePlaceholder": "e.g. Tomato & Egg Stir-fry",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "A short note about this dish",
-    "save": "Save"
+    "save": "Save",
+    "stepsLabel": "Steps",
+    "addStep": "Add step",
+    "stepPlaceholder": "Describe this step\u2026",
+    "stepRequired": "Required step",
+    "deleteStep": "Delete step",
+    "addStepPhoto": "Add photo",
+    "prevPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
+    "enlargePhoto": "Enlarge photo"
   },
   "callback": {
     "signingIn": "Signing you in…",

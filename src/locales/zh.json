@@ -70,7 +70,16 @@
     "titlePlaceholder": "例如：西红柿炒鸡蛋",
     "descriptionLabel": "描述",
     "descriptionPlaceholder": "关于这道菜的简短说明",
-    "save": "保存"
+    "save": "保存",
+    "stepsLabel": "步骤",
+    "addStep": "添加步骤",
+    "stepPlaceholder": "写下这一步要做什么\u2026",
+    "stepRequired": "必要步骤",
+    "deleteStep": "删除步骤",
+    "addStepPhoto": "添加图片",
+    "prevPhoto": "上一张",
+    "nextPhoto": "下一张",
+    "enlargePhoto": "放大查看"
   },
   "callback": {
     "signingIn": "正在登录…",

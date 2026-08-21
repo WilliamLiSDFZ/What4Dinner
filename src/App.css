@@ -930,6 +930,291 @@
   }
 }
 
+.add-dish-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.step-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+/* The divider is inset on both sides, so it cannot be a border-bottom. */
+.step-row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.step-index {
+  flex: 0 0 15%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 36px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+}
+
+.step-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+}
+
+/* min-width: 0 lets the textarea shrink below its intrinsic width instead of
+   pushing the media column out of the row. */
+.step-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step-instruction {
+  min-height: 72px;
+}
+
+.step-required {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.step-required input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.step-media {
+  flex: 0 0 25%;
+}
+
+.step-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  font-size: 20px;
+  color: var(--accent);
+  background: transparent;
+  border: 2px dashed var(--accent-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
+}
+
+.step-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step-carousel-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.step-carousel-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: zoom-in;
+}
+
+.step-carousel-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Like .add-dish-thumb-remove, these sit on arbitrary photo content and carry
+   their own scrim rather than relying on a theme token. */
+.step-carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.75);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &.is-prev {
+    left: 6px;
+  }
+
+  &.is-next {
+    right: 6px;
+  }
+}
+
+.step-carousel-count {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 999px;
+}
+
+.step-add-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+}
+
+.step-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed var(--accent-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
+}
+
+.lightbox-image {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 12px;
+  cursor: default;
+}
+
+/* The 15% / 25% columns collapse below a phone width; stack them instead. */
+@media (max-width: 768px) {
+  .step-row {
+    flex-wrap: wrap;
+  }
+
+  .step-index {
+    flex: 0 0 auto;
+    flex-direction: row;
+  }
+
+  .step-body,
+  .step-media {
+    flex: 1 1 100%;
+  }
+
+  .step-upload,
+  .step-carousel-frame {
+    aspect-ratio: 16 / 9;
+  }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -938,6 +1223,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.modal-overlay.is-lightbox {
+  cursor: zoom-out;
 }
 
 .modal-box {
