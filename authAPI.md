@@ -10,10 +10,15 @@ All protected endpoints require a JWT token in the `Authorization` header:
 Authorization: Bearer <token>
 ```
 
-The JWT is valid for 60 minutes and contains:
+The JWT is valid for 12 hours and contains:
 - `sub` — user ID
 - `email` — user email
 - `iss` — `what4dinner-auth`
+
+The token carries **identity only**. It deliberately does not contain `family_id`: a user's family
+can change, tokens live for 12 hours and cannot be revoked, so a family id baked into the token
+would keep granting access to the family the user just left. Services that need the caller's family
+read `users.family_id` for the token's `sub` — this auth service does not expose it.
 
 ---
 
@@ -153,7 +158,7 @@ GET /api/v1/exchange-code?code=<code>
 }
 ```
 
-The returned `token` is the usable **60-minute JWT** — store it and send it as `Authorization: Bearer`
+The returned `token` is the usable **12-hour JWT** — store it and send it as `Authorization: Bearer`
 on subsequent requests (see [Using the JWT Token](#using-the-jwt-token)).
 
 ```javascript

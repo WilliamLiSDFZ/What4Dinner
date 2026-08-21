@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import './App.css'
 import { ThemeContext } from './ThemeContext'
-import Layout from './components/Layout'
-import Home from './pages/Home'
-import Menu from './pages/Menu'
-import Favorites from './pages/Favorites'
-import Shopping from './pages/Shopping'
-import Family from './pages/Family'
-import Settings from './pages/Settings'
-import AddDish from './pages/AddDish'
-import Callback from './pages/Callback'
 
+// Root layout route: owns the theme and renders whichever child route matched.
+// The route tree itself lives in src/router.jsx.
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system')
 
@@ -35,18 +28,7 @@ export default function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <Routes>
-        <Route path="callback" element={<Callback />} />
-        <Route element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="menu" element={<Menu />} />
-          <Route path="favorites" element={<Favorites />} />
-          <Route path="shopping" element={<Shopping />} />
-          <Route path="family" element={<Family />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="add" element={<AddDish />} />
-        </Route>
-      </Routes>
+      <Outlet />
     </ThemeContext.Provider>
   )
 }

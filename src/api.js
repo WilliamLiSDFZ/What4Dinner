@@ -31,7 +31,7 @@ async function apiFetch(url, options) {
 }
 
 // Trade the short-lived one-time `code` from the OAuth callback for the
-// usable 60-minute API token. The code query param is itself the credential,
+// usable 12-hour API token. The code query param is itself the credential,
 // so no Authorization header is sent.
 export async function exchangeCode(code) {
   const res = await fetch(`${AUTH_BASE_URL}/v1/exchange-code?code=${encodeURIComponent(code)}`)

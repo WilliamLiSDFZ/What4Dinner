@@ -28,7 +28,7 @@ Token expectations:
 - `sub` — the user's UUID (used to scope user-owned resources).
 - `email` — the user's email.
 - `iss` — `what4dinner-auth`.
-- Expiry per `jwt.expiration-minutes` (default 60).
+- Expiry per `jwt.expiration-minutes` (default 720 — 12 hours).
 
 Tokens are minted by the auth service; this service validates them. `JWTService` (`generateToken` / `generateShortTermToken` / `exchangeToken`) can also issue tokens when needed.
 

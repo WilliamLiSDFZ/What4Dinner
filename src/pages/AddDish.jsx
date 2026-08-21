@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getIngredients, createIngredient } from '../api'
 
 export default function AddDish() {
   const { t } = useTranslation()
-  const [showConfirm, setShowConfirm] = useState(false)
   // Picked photos, preview-only: { id, file, url }. Nothing is uploaded yet.
   const [images, setImages] = useState([])
   // Once the manual button is pressed the page is cleared to make room for the
@@ -61,6 +60,30 @@ export default function AddDish() {
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [lightboxUrl])
+
+  // Nothing is persisted until Save exists, so anything the user has entered —
+  // including photos picked before switching to manual entry — is worth a
+  // confirmation before it is thrown away.
+  const isDirty =
+    title.trim() !== '' || description.trim() !== '' || steps.length > 0 || images.length > 0
+
+  // Covers the sidebar tabs, the Return button's navigate(-1), and the browser's
+  // back/forward buttons. Requires the data router set up in App.jsx.
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) => isDirty && currentLocation.pathname !== nextLocation.pathname,
+  )
+
+  // The other half: refreshing, closing the tab, or navigating away from the app
+  // entirely. The browser owns this dialog, so its wording cannot be set here.
+  useEffect(() => {
+    if (!isDirty) return
+    const onBeforeUnload = (e) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [isDirty])
 
   // Dismiss the picker on Escape or a click outside it, as the Favorites row
   // menu does. The create dialog closes the picker first, so there is no
@@ -209,7 +232,9 @@ export default function AddDish() {
   return (
     <>
       <div className="add-dish-page">
-        <button className="add-dish-return" onClick={() => setShowConfirm(true)}>
+        {/* Plain navigation — the blocker above puts the confirmation in front of
+            it, so Return, the sidebar tabs and the back button share one path. */}
+        <button className="add-dish-return" onClick={() => navigate(-1)}>
           <i className="bi-arrow-left" /> {t('addDish.return')}
         </button>
 
@@ -573,13 +598,13 @@ export default function AddDish() {
         </div>
       )}
 
-      {showConfirm && (
+      {blocker.state === 'blocked' && (
         <div className="modal-overlay">
           <div className="modal-box">
             <p>{t('addDish.confirmLeave')}</p>
             <div className="modal-actions">
-              <button className="modal-cancel" onClick={() => setShowConfirm(false)}>{t('addDish.cancel')}</button>
-              <button className="modal-confirm" onClick={() => navigate(-1)}>{t('addDish.leave')}</button>
+              <button className="modal-cancel" onClick={() => blocker.reset()}>{t('addDish.cancel')}</button>
+              <button className="modal-confirm" onClick={() => blocker.proceed()}>{t('addDish.leave')}</button>
             </div>
           </div>
         </div>

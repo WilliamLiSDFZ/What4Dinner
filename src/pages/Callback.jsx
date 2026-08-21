@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { exchangeCode } from '../api'
 
 // OAuth landing route. The auth service redirects here as
-// /callback?code=<short-lived code>; we exchange it for the real 60-minute
+// /callback?code=<short-lived code>; we exchange it for the real 12-hour
 // token, persist that, and send the user into the app.
 export default function Callback() {
   const { t } = useTranslation()
