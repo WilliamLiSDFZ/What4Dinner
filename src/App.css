@@ -938,7 +938,7 @@
 .step-row {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 12px;
   padding: 20px 0;
 }
@@ -1026,7 +1026,11 @@
   gap: 8px;
 }
 
+/* `1 1 auto`, not `1`: a 0% basis would make the flex algorithm ignore the
+   element's own height and silently break the resize handle inherited from
+   .add-dish-textarea. */
 .step-instruction {
+  flex: 1 1 auto;
   min-height: 72px;
 }
 
@@ -1088,10 +1092,8 @@
   }
 }
 
-/* margin-left: auto is what pins the + to the right end of the row. */
 .ingredient-anchor {
   position: relative;
-  margin-left: auto;
 }
 
 .ingredient-add {
@@ -1119,7 +1121,7 @@
 .ingredient-picker {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  left: 0;
   z-index: 150;
   display: flex;
   flex-direction: column;
@@ -1238,6 +1240,7 @@
   justify-content: center;
   width: 100%;
   aspect-ratio: 1;
+  max-height: 160px;
   font-size: 20px;
   color: var(--accent);
   background: transparent;
@@ -1262,6 +1265,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
+  max-height: 160px;
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
@@ -1417,6 +1421,7 @@
   .step-upload,
   .step-carousel-frame {
     aspect-ratio: 16 / 9;
+    max-height: none;
   }
 }
 
