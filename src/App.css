@@ -854,6 +854,82 @@
   }
 }
 
+.add-dish-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* .add-dish-page is flex: 1, so without a cap the fields span the whole
+     main-content width on a desktop window. */
+  max-width: 640px;
+  margin-top: 24px;
+}
+
+.add-dish-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-dish-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+/* `font: inherit` is load-bearing: form controls do not inherit the :root font,
+   so a textarea would otherwise fall back to the browser's monospace default. */
+.add-dish-input,
+.add-dish-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: var(--text);
+    opacity: 0.65;
+  }
+
+  &:focus {
+    border-color: var(--accent-border);
+  }
+}
+
+.add-dish-textarea {
+  min-height: 96px;
+  line-height: 150%;
+  resize: vertical;
+}
+
+.add-dish-save {
+  align-self: flex-start;
+  padding: 8px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 85%, #000);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

@@ -11,6 +11,9 @@ export default function AddDish() {
   // form that will be specified later.
   const [manual, setManual] = useState(false)
   const [dragging, setDragging] = useState(false)
+  // Named after the backend's recipe fields so this can become the POST body as-is.
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const inputRef = useRef(null)
   const navigate = useNavigate()
 
@@ -95,6 +98,46 @@ export default function AddDish() {
               <i className="bi-pencil" /> {t('addDish.manualEntry')}
             </button>
           </>
+        )}
+
+        {manual && (
+          // A real form so Enter submits and the later steps have somewhere to
+          // hang validation; there is nothing to send until the create endpoint
+          // exists, so the handler only stops the browser navigating.
+          <form className="add-dish-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="add-dish-field">
+              <label className="add-dish-label" htmlFor="dish-title">
+                {t('addDish.titleLabel')}
+              </label>
+              <input
+                id="dish-title"
+                className="add-dish-input"
+                type="text"
+                value={title}
+                placeholder={t('addDish.titlePlaceholder')}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+
+            <div className="add-dish-field">
+              <label className="add-dish-label" htmlFor="dish-description">
+                {t('addDish.descriptionLabel')}
+              </label>
+              <textarea
+                id="dish-description"
+                className="add-dish-textarea"
+                rows={4}
+                value={description}
+                placeholder={t('addDish.descriptionPlaceholder')}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            {/* Only the title is required — the backend allows a null description. */}
+            <button type="submit" className="add-dish-save" disabled={!title.trim()}>
+              {t('addDish.save')}
+            </button>
+          </form>
         )}
       </div>
 

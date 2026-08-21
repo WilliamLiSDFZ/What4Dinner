@@ -65,7 +65,12 @@
     "uploadPrompt": "拖入菜谱照片",
     "uploadHint": "或点击选择文件",
     "removePhoto": "移除照片",
-    "manualEntry": "手动输入"
+    "manualEntry": "手动输入",
+    "titleLabel": "菜名",
+    "titlePlaceholder": "例如：西红柿炒鸡蛋",
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "关于这道菜的简短说明",
+    "save": "保存"
   },
   "callback": {
     "signingIn": "正在登录…",

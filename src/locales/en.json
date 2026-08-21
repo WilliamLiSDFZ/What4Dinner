@@ -65,7 +65,12 @@
     "uploadPrompt": "Drop recipe photos here",
     "uploadHint": "or click to browse",
     "removePhoto": "Remove photo",
-    "manualEntry": "Enter manually"
+    "manualEntry": "Enter manually",
+    "titleLabel": "Dish name",
+    "titlePlaceholder": "e.g. Tomato & Egg Stir-fry",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "A short note about this dish",
+    "save": "Save"
   },
   "callback": {
     "signingIn": "Signing you in…",
