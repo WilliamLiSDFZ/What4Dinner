@@ -45,6 +45,14 @@
   flex-shrink: 0;
 }
 
+/* The horizontal mobile bar has to fit the nav, avatar and logout button, and
+   the wordmark is what squeezes them out; the logo still carries the brand. */
+.sidebar-brand-name {
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
 .sidebar-nav {
   list-style: none;
   padding: 12px 0;
@@ -558,6 +566,54 @@
   margin-bottom: 32px;
 }
 
+.settings-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Same recipe as .add-dish-input; capped because the timezone list is several
+   hundred entries and the control should not span the page. */
+.settings-select {
+  width: 100%;
+  max-width: 360px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: var(--accent-border);
+  }
+}
+
+.settings-hint {
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.settings-save-status {
+  margin-left: 10px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.add-dish-label-unit {
+  margin-left: 6px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--accent);
+}
+
 .settings-account {
   list-style: none;
   padding: 0;
@@ -619,6 +675,46 @@
   &.active {
     background: var(--accent);
     color: #fff;
+  }
+}
+
+.shopping-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* The h1 carries its own 24px bottom margin; the header row owns the spacing now. */
+.shopping-header h1 {
+  margin-bottom: 0;
+}
+
+.shopping-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
+
+  /* :hover still matches a disabled button, hence the :not() above. */
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -1226,7 +1322,10 @@
   }
 }
 
-.ingredient-name-input {
+.ingredient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 16px;
 }
 

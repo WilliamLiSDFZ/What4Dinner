@@ -1,10 +1,13 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useContext } from 'react'
 import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getIngredients, createIngredient } from '../api'
+import { SettingsContext } from '../SettingsContext'
 
 export default function AddDish() {
   const { t } = useTranslation()
+  const { settings } = useContext(SettingsContext)
+  const currency = settings?.family?.currencyUnit
   // Picked photos, preview-only: { id, file, url }. Nothing is uploaded yet.
   const [images, setImages] = useState([])
   // Once the manual button is pressed the page is cleared to make room for the
@@ -30,6 +33,9 @@ export default function AddDish() {
   // Step the ingredient being created should attach to; null when the dialog is closed.
   const [creatingFor, setCreatingFor] = useState(null)
   const [newName, setNewName] = useState('')
+  // Kept as strings because they come straight from inputs; both are optional.
+  const [newPrice, setNewPrice] = useState('')
+  const [newLastPurchase, setNewLastPurchase] = useState('')
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState(null)
   const inputRef = useRef(null)
@@ -200,31 +206,61 @@ export default function AddDish() {
     setPickerStepId(null)
     setCreatingFor(stepId)
     setNewName('')
+    setNewPrice('')
+    setNewLastPurchase('')
     setCreateError(null)
   }
 
   async function submitNewIngredient() {
     const name = newName.trim()
     if (!name) return
+    // The confirm button has to be type="button" (it sits inside the outer
+    // recipe form), so min="0" is never enforced natively — check it here rather
+    // than round-tripping to the server for a 400.
+    const referencePrice = newPrice.trim() === '' ? null : Number(newPrice)
+    if (referencePrice !== null && (Number.isNaN(referencePrice) || referencePrice < 0)) {
+      setCreateError(t('addDish.ingredientInvalid'))
+      return
+    }
     setCreating(true)
     setCreateError(null)
     try {
-      const created = await createIngredient(name)
+      // A date input's value is already yyyy-MM-dd, which is exactly what the
+      // endpoint wants, so there is nothing to parse.
+      const created = await createIngredient({
+        name,
+        referencePrice,
+        lastPurchase: newLastPurchase || null,
+      })
       addIngredient(creatingFor, created)
       setCreatingFor(null)
       setNewName('')
+      setNewPrice('')
+      setNewLastPurchase('')
     } catch (err) {
-      // The backend rejects a name the family already has; everything else is
-      // reported verbatim.
+      // 409 is a name the family already has, 400 a bad price or date;
+      // everything else is reported verbatim.
       setCreateError(
-        err.message === 'HTTP 409'
-          ? t('addDish.ingredientExists')
-          : t('addDish.createFailed', { message: err.message }),
+        err.message === 'HTTP 409' ? t('addDish.ingredientExists')
+          : err.message === 'HTTP 400' ? t('addDish.ingredientInvalid')
+            : t('addDish.createFailed', { message: err.message }),
       )
     } finally {
       setCreating(false)
     }
   }
+
+  function submitOnEnter(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      submitNewIngredient()
+    }
+  }
+
+  // Built from local date parts on purpose: toISOString() is UTC and would name
+  // the wrong day for part of the day in the user's timezone.
+  const now = new Date()
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   const searchTerm = search.trim().toLowerCase()
   const matches = ingredients.filter((i) => i.canonicalName.toLowerCase().includes(searchTerm))
@@ -550,19 +586,58 @@ export default function AddDish() {
         // — a submit here would try to submit the whole recipe.
         <div className="modal-overlay">
           <div className="modal-box">
-            <label className="add-dish-label" htmlFor="new-ingredient">
-              {t('addDish.ingredientName')}
-            </label>
-            <input
-              id="new-ingredient"
-              className="add-dish-input ingredient-name-input"
-              type="text"
-              value={newName}
-              autoFocus
-              placeholder={t('addDish.ingredientNamePlaceholder')}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewIngredient() } }}
-            />
+            <div className="ingredient-form">
+              <div className="add-dish-field">
+                <label className="add-dish-label" htmlFor="new-ingredient">
+                  {t('addDish.ingredientName')}
+                </label>
+                <input
+                  id="new-ingredient"
+                  className="add-dish-input"
+                  type="text"
+                  value={newName}
+                  autoFocus
+                  placeholder={t('addDish.ingredientNamePlaceholder')}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={submitOnEnter}
+                />
+              </div>
+
+              <div className="add-dish-field">
+                <label className="add-dish-label" htmlFor="new-ingredient-price">
+                  {t('addDish.ingredientPrice')}
+                  {currency && <span className="add-dish-label-unit">{currency}</span>}
+                </label>
+                <input
+                  id="new-ingredient-price"
+                  className="add-dish-input"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={newPrice}
+                  placeholder={t('addDish.ingredientPricePlaceholder')}
+                  onChange={(e) => setNewPrice(e.target.value)}
+                  onKeyDown={submitOnEnter}
+                />
+              </div>
+
+              <div className="add-dish-field">
+                <label className="add-dish-label" htmlFor="new-ingredient-date">
+                  {t('addDish.ingredientLastPurchase')}
+                </label>
+                {/* A *last* purchase cannot be in the future. Enter belongs to the
+                    native picker here, so no submit-on-enter. */}
+                <input
+                  id="new-ingredient-date"
+                  className="add-dish-input"
+                  type="date"
+                  max={todayIso}
+                  value={newLastPurchase}
+                  onChange={(e) => setNewLastPurchase(e.target.value)}
+                />
+              </div>
+            </div>
             {createError && <p className="menu-status menu-error">{createError}</p>}
             <div className="modal-actions">
               <button

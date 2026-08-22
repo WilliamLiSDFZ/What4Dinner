@@ -91,13 +91,46 @@ export async function getIngredients() {
   return res.json()
 }
 
-// `categoryId` is optional and no endpoint lists the categories yet, so callers
-// leave it null. A 409 means the family already has an ingredient by that name.
-export async function createIngredient(name, categoryId = null) {
+// Takes an options object because only `name` is required and the argument list
+// otherwise mirrors the JSON body one-for-one. `categoryId` has no listing
+// endpoint yet, so callers leave it null; `referencePrice` and `lastPurchase`
+// are optional (the backend stores 0 / null for them). `lastPurchase` goes in as
+// a plain yyyy-MM-dd date and comes back as a midnight timestamp.
+// A 409 means the family already has an ingredient by that name; a 400 means a
+// negative price or a malformed date.
+export async function createIngredient({
+  name,
+  categoryId = null,
+  referencePrice = null,
+  lastPurchase = null,
+}) {
   const res = await apiFetch(`${BASE_URL}/ingredient`, {
     method: 'POST',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, categoryId }),
+    body: JSON.stringify({ name, categoryId, referencePrice, lastPurchase }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// Settings are grouped by scope on purpose, so read `settings.family.timezone`
+// rather than a top-level `timezone` — future groups arrive as sibling keys.
+// The family group lives on the family row, so it is shared by every member.
+export async function getSettings() {
+  const res = await apiFetch(`${BASE_URL}/setting`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// Partial at both levels: omitted groups and omitted fields inside a group are
+// left alone, so callers pass an already-nested patch like
+// { family: { timezone } }. Resolves to the full document after the change.
+// A 400 means an invalid IANA zone id (case-sensitive) or ISO 4217 code.
+export async function updateSettings(patch) {
+  const res = await apiFetch(`${BASE_URL}/setting`, {
+    method: 'PATCH',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()

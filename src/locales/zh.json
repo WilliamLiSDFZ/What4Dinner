@@ -33,6 +33,14 @@
     "unfavorite": "取消收藏",
     "unfavoriteFailed": "取消收藏失败：{{message}}"
   },
+  "shopping": {
+    "title": "购物清单",
+    "ingredients": "食材",
+    "dishes": "菜品",
+    "clear": "清空",
+    "noIngredients": "清单里没有食材。",
+    "noDishes": "清单里没有菜品。"
+  },
   "settings": {
     "title": "设置",
     "account": "账户",
@@ -41,6 +49,16 @@
     "username": "用户名",
     "email": "邮箱",
     "memberSince": "注册于",
+    "family": "家庭",
+    "familyShared": "这些设置对全家生效。",
+    "timezone": "时区",
+    "currency": "货币",
+    "familyLoading": "正在加载家庭设置\u2026",
+    "familyError": "无法加载家庭设置：{{message}}",
+    "saving": "正在保存\u2026",
+    "saved": "已保存",
+    "settingInvalid": "这个值无法保存。",
+    "saveFailed": "保存失败：{{message}}",
     "loading": "正在加载个人信息…",
     "error": "无法加载个人信息：{{message}}"
   },
@@ -91,6 +109,10 @@
     "newIngredient": "新建食材",
     "ingredientName": "食材名称",
     "ingredientNamePlaceholder": "例如：西红柿",
+    "ingredientPrice": "参考价格（选填）",
+    "ingredientPricePlaceholder": "例如：3.50",
+    "ingredientLastPurchase": "上次购买（选填）",
+    "ingredientInvalid": "请检查价格和日期。",
     "create": "创建",
     "creating": "正在创建\u2026",
     "ingredientExists": "这个食材已经存在。",

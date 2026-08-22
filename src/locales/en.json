@@ -33,6 +33,14 @@
     "unfavorite": "Unfavorite",
     "unfavoriteFailed": "Couldn't unfavorite: {{message}}"
   },
+  "shopping": {
+    "title": "Shopping List",
+    "ingredients": "Ingredients",
+    "dishes": "Dishes",
+    "clear": "Clear",
+    "noIngredients": "No ingredients on the list.",
+    "noDishes": "No dishes on the list."
+  },
   "settings": {
     "title": "Settings",
     "account": "Account",
@@ -41,6 +49,16 @@
     "username": "Username",
     "email": "Email",
     "memberSince": "Member since",
+    "family": "Family",
+    "familyShared": "These apply to everyone in your family.",
+    "timezone": "Time zone",
+    "currency": "Currency",
+    "familyLoading": "Loading family settings\u2026",
+    "familyError": "Couldn't load family settings: {{message}}",
+    "saving": "Saving\u2026",
+    "saved": "Saved",
+    "settingInvalid": "That value was rejected.",
+    "saveFailed": "Couldn't save: {{message}}",
     "loading": "Loading profile…",
     "error": "Couldn't load profile: {{message}}"
   },
@@ -91,6 +109,10 @@
     "newIngredient": "New ingredient",
     "ingredientName": "Ingredient name",
     "ingredientNamePlaceholder": "e.g. Tomato",
+    "ingredientPrice": "Reference price (optional)",
+    "ingredientPricePlaceholder": "e.g. 3.50",
+    "ingredientLastPurchase": "Last purchased (optional)",
+    "ingredientInvalid": "Check the price and date.",
     "create": "Create",
     "creating": "Creating\u2026",
     "ingredientExists": "That ingredient already exists.",
