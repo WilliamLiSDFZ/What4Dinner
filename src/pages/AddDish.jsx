@@ -30,6 +30,12 @@ export default function AddDish() {
   const [ingredientsLoading, setIngredientsLoading] = useState(false)
   const [ingredientsError, setIngredientsError] = useState(null)
   const [search, setSearch] = useState('')
+  // Second stage of the picker: the ingredient chosen but not yet added, held
+  // while its quantity is filled in. Null means the list is showing.
+  const [pendingIngredient, setPendingIngredient] = useState(null)
+  const [draftAmount, setDraftAmount] = useState('')
+  const [draftUnit, setDraftUnit] = useState('')
+  const [draftOptional, setDraftOptional] = useState(false)
   // Step the ingredient being created should attach to; null when the dialog is closed.
   const [creatingFor, setCreatingFor] = useState(null)
   const [newName, setNewName] = useState('')
@@ -96,9 +102,20 @@ export default function AddDish() {
   // ambiguity about which one Escape targets.
   useEffect(() => {
     if (!pickerStepId) return
-    const onKeyDown = (e) => { if (e.key === 'Escape') setPickerStepId(null) }
+    // Escape steps back one stage rather than closing outright: from the
+    // quantity form it returns to the list, and only then closes the popover.
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape') return
+      if (pendingIngredient) setPendingIngredient(null)
+      else setPickerStepId(null)
+    }
+    // An outside click closes the whole thing, and must drop the pending
+    // ingredient too or the form would reappear on the next open.
     const onPointerDown = (e) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) setPickerStepId(null)
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setPickerStepId(null)
+        setPendingIngredient(null)
+      }
     }
     document.addEventListener('keydown', onKeyDown)
     document.addEventListener('pointerdown', onPointerDown)
@@ -106,7 +123,7 @@ export default function AddDish() {
       document.removeEventListener('keydown', onKeyDown)
       document.removeEventListener('pointerdown', onPointerDown)
     }
-  }, [pickerStepId])
+  }, [pickerStepId, pendingIngredient])
 
   function addFiles(fileList) {
     // Mint the ids and object URLs out here: doing it inside the updater would
@@ -167,13 +184,11 @@ export default function AddDish() {
   }
 
   // Re-fetched on every open so an ingredient created from another step shows up
-  // without a reload. Clicking the same step's button again just closes it.
-  function togglePicker(stepId) {
-    if (pickerStepId === stepId) {
-      setPickerStepId(null)
-      return
-    }
+  // without a reload. Split out from the toggle because the create flow needs to
+  // force the picker open, which a toggle cannot express.
+  function openPicker(stepId) {
     setPickerStepId(stepId)
+    setPendingIngredient(null)
     setSearch('')
     setIngredientsError(null)
     setIngredientsLoading(true)
@@ -183,13 +198,49 @@ export default function AddDish() {
       .finally(() => setIngredientsLoading(false))
   }
 
-  function addIngredient(stepId, ingredient) {
+  function togglePicker(stepId) {
+    if (pickerStepId === stepId) {
+      setPickerStepId(null)
+      setPendingIngredient(null)
+      return
+    }
+    openPicker(stepId)
+  }
+
+  // Move to the quantity stage rather than adding straight away.
+  function startQuantity(ingredient) {
+    setPendingIngredient(ingredient)
+    setDraftAmount('')
+    setDraftUnit('')
+    setDraftOptional(false)
+  }
+
+  // `amount` and `unit` stay as the strings the inputs produced — there is no
+  // endpoint storing step ingredients yet, so nothing needs a number. Whatever
+  // eventually POSTs this should send Number(amount).
+  function addIngredient(stepId, ingredient, { amount, unit, optional }) {
     setSteps((prev) => prev.map((step) => {
       if (step.id !== stepId) return step
       if (step.ingredients.some((i) => i.id === ingredient.id)) return step
       const { id, canonicalName } = ingredient
-      return { ...step, ingredients: [...step.ingredients, { id, canonicalName }] }
+      return {
+        ...step,
+        ingredients: [
+          ...step.ingredients,
+          { id, canonicalName, amount: amount.trim(), unit: unit.trim(), optional },
+        ],
+      }
     }))
+  }
+
+  function confirmQuantity(stepId) {
+    addIngredient(stepId, pendingIngredient, {
+      amount: draftAmount,
+      unit: draftUnit,
+      optional: draftOptional,
+    })
+    // Back to the list so the next ingredient can be picked without reopening.
+    setPendingIngredient(null)
   }
 
   function removeIngredient(stepId, ingredientId) {
@@ -232,8 +283,12 @@ export default function AddDish() {
         referencePrice,
         lastPurchase: newLastPurchase || null,
       })
-      addIngredient(creatingFor, created)
+      // Same quantity stage as a picked ingredient, so both routes behave
+      // alike. Reopening refetches, so the new row is in the list behind it.
+      const stepId = creatingFor
       setCreatingFor(null)
+      openPicker(stepId)
+      startQuantity(created)
       setNewName('')
       setNewPrice('')
       setNewLastPurchase('')
@@ -396,7 +451,17 @@ export default function AddDish() {
 
                       <div className="step-ingredients">
                         {step.ingredients.map((ingredient) => (
-                          <span className="ingredient-pill" key={ingredient.id}>
+                          <span
+                            className={`ingredient-pill${ingredient.optional ? ' is-optional' : ''}`}
+                            key={ingredient.id}
+                          >
+                            {/* Either half can be blank, so filter before joining
+                                or the label picks up a stray space. */}
+                            {[ingredient.amount, ingredient.unit].filter(Boolean).length > 0 && (
+                              <span className="ingredient-pill-qty">
+                                {[ingredient.amount, ingredient.unit].filter(Boolean).join(' ')}
+                              </span>
+                            )}
                             {ingredient.canonicalName}
                             <button
                               type="button"
@@ -425,7 +490,70 @@ export default function AddDish() {
                             <i className="bi-plus-lg" />
                           </button>
 
-                          {pickerStepId === step.id && (
+                          {pickerStepId === step.id && pendingIngredient && (
+                            <div className="ingredient-picker">
+                              <div className="ingredient-quantity-header">
+                                <button
+                                  type="button"
+                                  className="ingredient-back"
+                                  aria-label={t('addDish.backToList')}
+                                  onClick={() => setPendingIngredient(null)}
+                                >
+                                  <i className="bi-arrow-left" />
+                                </button>
+                                {pendingIngredient.canonicalName}
+                              </div>
+                              <div className="ingredient-quantity">
+                                <span className="add-dish-label">{t('addDish.quantity')}</span>
+                                <div className="ingredient-quantity-row">
+                                  <input
+                                    className="ingredient-search ingredient-amount"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    inputMode="decimal"
+                                    value={draftAmount}
+                                    placeholder={t('addDish.amountPlaceholder')}
+                                    onChange={(e) => setDraftAmount(e.target.value)}
+                                  />
+                                  <input
+                                    className="ingredient-search"
+                                    type="text"
+                                    value={draftUnit}
+                                    placeholder={t('addDish.unitPlaceholder')}
+                                    onChange={(e) => setDraftUnit(e.target.value)}
+                                  />
+                                </div>
+                                <label className="step-required">
+                                  <input
+                                    type="checkbox"
+                                    checked={draftOptional}
+                                    onChange={(e) => setDraftOptional(e.target.checked)}
+                                  />
+                                  {t('addDish.optionalIngredient')}
+                                </label>
+                                {/* Always enabled — the quantity is optional. */}
+                                <div className="ingredient-quantity-actions">
+                                  <button
+                                    type="button"
+                                    className="modal-cancel"
+                                    onClick={() => setPendingIngredient(null)}
+                                  >
+                                    {t('addDish.cancel')}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="modal-confirm"
+                                    onClick={() => confirmQuantity(step.id)}
+                                  >
+                                    {t('addDish.addToStep')}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {pickerStepId === step.id && !pendingIngredient && (
                             <div className="ingredient-picker">
                               <input
                                 className="ingredient-search"
@@ -459,7 +587,7 @@ export default function AddDish() {
                                           type="button"
                                           className="ingredient-option"
                                           disabled={added}
-                                          onClick={() => addIngredient(step.id, ingredient)}
+                                          onClick={() => startQuantity(ingredient)}
                                         >
                                           {ingredient.canonicalName}
                                           {added && (

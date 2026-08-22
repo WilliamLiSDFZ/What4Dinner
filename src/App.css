@@ -1169,6 +1169,15 @@
   border-radius: 999px;
 }
 
+/* Dashed border marks an optional ingredient; required keeps the solid one. */
+.ingredient-pill.is-optional {
+  border-style: dashed;
+}
+
+.ingredient-pill-qty {
+  font-weight: 600;
+}
+
 .ingredient-pill-remove {
   display: flex;
   align-items: center;
@@ -1292,6 +1301,71 @@
 .ingredient-option-added {
   font-size: 12px;
   color: var(--accent);
+}
+
+.ingredient-quantity-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+}
+
+.ingredient-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+}
+
+.ingredient-quantity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px 2px;
+}
+
+/* .step-required centres itself for the narrow step-index column; inside this
+   left-aligned form it needs to sit against the edge like everything else. */
+.ingredient-quantity .step-required {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* The popover is 240px, so the amount gets a narrow fixed basis and the unit
+   takes what is left; the width does not change between the two stages. */
+.ingredient-quantity-row {
+  display: flex;
+  gap: 6px;
+}
+
+.ingredient-amount {
+  flex: 0 0 84px;
+  min-width: 0;
+}
+
+.ingredient-quantity-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
 }
 
 .ingredient-picker-status {
