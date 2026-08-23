@@ -5,7 +5,8 @@
     "favorites": "收藏",
     "shopping": "购物清单",
     "family": "我的家庭",
-    "settings": "设置"
+    "settings": "设置",
+    "pages": "页面"
   },
   "fab": {
     "addDish": "添加新菜"
@@ -129,6 +130,7 @@
     "failed": "登录失败：{{message}}"
   },
   "auth": {
-    "logout": "退出登录"
+    "logout": "退出登录",
+    "account": "账户"
   }
 }

@@ -10,7 +10,8 @@ All colors are defined as CSS custom properties on `:root` (light) and `:root.da
 
 | Variable | Value | Usage |
 |---|---|---|
-| `--bg` | `#FBF6F0` | Page background (opaque) |
+| `--bg` | `#FBF6F0` | Page background (~87% alpha) |
+| `--surface` | `#F6F4F0` | Floating surfaces with no scrim behind them (dropdowns, popovers) — fully opaque |
 | `--text` | `#5C4A3A` | Body text |
 | `--text-h` | `#2E1E10` | Headings, emphasized text |
 | `--accent` | `#A0623A` | Primary accent (terracotta) |
@@ -27,6 +28,7 @@ All colors are defined as CSS custom properties on `:root` (light) and `:root.da
 | Variable | Value |
 |---|---|
 | `--bg` | `#1A1410` |
+| `--surface` | `#1A1410` |
 | `--text` | `#B0A090` |
 | `--text-h` | `#EDE4D8` |
 | `--accent` | `#C07A4A` |
@@ -37,7 +39,7 @@ All colors are defined as CSS custom properties on `:root` (light) and `:root.da
 | `--sidebar-bg` | `#211A14` |
 | `--code-bg` | `#241C14` |
 
-**Note:** `--card-bg` and `--sidebar-bg` are semi-transparent in light mode. Use `--bg` for elements that must be opaque (e.g., modals on top of overlays).
+**Note:** `--card-bg` and `--sidebar-bg` are semi-transparent in light mode. Use `--bg` for elements that sit on an overlay (modals — the scrim behind them hides its ~87% alpha), and `--surface` for anything floating directly over page content, such as a dropdown, where that alpha would let text bleed through.
 
 ## Typography
 

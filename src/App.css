@@ -61,14 +61,6 @@
   flex-direction: column;
   gap: 2px;
   flex: 1;
-
-  @media (max-width: 768px) {
-    flex-direction: row;
-    padding: 0;
-    gap: 4px;
-    overflow-x: auto;
-    flex: initial;
-  }
 }
 
 .sidebar-user {
@@ -79,39 +71,32 @@
   padding: 16px 24px;
   margin-top: auto;
   border-top: 1px solid var(--border);
-
-  @media (max-width: 768px) {
-    margin-top: 0;
-    margin-left: auto;
-    border-top: none;
-    padding: 0;
-  }
 }
 
+/* A <div> in the desktop sidebar but a <button> in the phone bar, so the button
+   defaults have to be cleared here rather than in a second rule. */
 .sidebar-avatar {
   width: 36px;
   height: 36px;
+  padding: 0;
+  border: none;
   border-radius: 50%;
   background: var(--accent);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
+  font: inherit;
   font-size: 15px;
   font-weight: 600;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .sidebar-user-name {
   font-size: 15px;
   color: var(--text-h);
   font-weight: 500;
-
-  /* The horizontal mobile bar has no room for the name once the logout button
-     joins the row; the avatar still identifies the user. */
-  @media (max-width: 768px) {
-    display: none;
-  }
 }
 
 .sidebar-logout {
@@ -134,18 +119,6 @@
     background: var(--accent-bg);
     color: var(--text-h);
   }
-
-  @media (max-width: 768px) {
-    margin: 0;
-    padding: 8px 12px;
-    flex-shrink: 0;
-  }
-}
-
-.sidebar-logout-label {
-  @media (max-width: 768px) {
-    display: none;
-  }
 }
 
 .sidebar-nav li a i {
@@ -166,18 +139,137 @@
     background: var(--accent-bg);
     color: var(--text-h);
   }
-
-  @media (max-width: 768px) {
-    padding: 8px 14px;
-    border-radius: 6px;
-    white-space: nowrap;
-  }
 }
 
 .sidebar-nav li a.active {
   color: var(--accent);
   background: var(--accent-bg);
   font-weight: 500;
+}
+
+/* Rendered only on the phone bar (Layout picks the branch), so these need no
+   media queries. Both dropdowns follow the ingredient-picker recipe: --surface
+   because they float over page content with no scrim, and z-index 150 — above
+   the FAB's 100, below .modal-overlay's 200. */
+.nav-menu {
+  position: relative;
+}
+
+.nav-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-h);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+  }
+}
+
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 150;
+  min-width: 180px;
+  list-style: none;
+  padding: 6px;
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.nav-dropdown li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
+
+  &.active {
+    color: var(--accent);
+    font-weight: 500;
+  }
+}
+
+/* Pushes the tick to the far edge and lets the label take the slack. */
+.nav-dropdown-label {
+  flex: 1;
+}
+
+.account-menu {
+  position: relative;
+  margin-left: auto;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.account-name {
+  padding: 8px 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.account-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
 }
 
 .guess-you-like {
@@ -1221,8 +1313,8 @@
   }
 }
 
-/* Floats over page content, so it uses --bg rather than the semi-transparent
-   --card-bg. Sits under .modal-overlay's z-index 200. */
+/* Floats over page content with no scrim behind it, so it needs the opaque
+   --surface rather than --bg. Sits under .modal-overlay's z-index 200. */
 .ingredient-picker {
   position: absolute;
   top: calc(100% + 6px);
@@ -1235,7 +1327,7 @@
   max-height: 300px;
   padding: 8px;
   box-sizing: border-box;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: var(--shadow);
@@ -1261,6 +1353,11 @@
 
   &:focus {
     border-color: var(--accent-border);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -1591,7 +1688,13 @@
     flex: 1 1 100%;
   }
 
-  .step-upload,
+  /* An empty placeholder does not need the space; a real photo does. */
+  .step-upload {
+    width: 96px;
+    aspect-ratio: 1;
+    max-height: none;
+  }
+
   .step-carousel-frame {
     aspect-ratio: 16 / 9;
     max-height: none;

@@ -2,6 +2,10 @@
   --text: #5C4A3A;
   --text-h: #2E1E10;
   --bg: #f5f2eede;
+  /* --bg is ~87% opaque, which is fine for the page itself and for modals (a
+     scrim sits behind them) but lets content bleed through a bare dropdown.
+     This is the same colour composited onto white. */
+  --surface: #F6F4F0;
   --border: #DDD0C0;
   --code-bg: #F5EBE0;
   --accent: #A0623A;
@@ -34,6 +38,7 @@
   --text: #B0A090;
   --text-h: #EDE4D8;
   --bg: #1A1410;
+  --surface: #1A1410;
   --border: #3D3028;
   --code-bg: #241C14;
   --accent: #C07A4A;

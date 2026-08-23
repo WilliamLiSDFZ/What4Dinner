@@ -514,12 +514,21 @@ export default function AddDish() {
                                     inputMode="decimal"
                                     value={draftAmount}
                                     placeholder={t('addDish.amountPlaceholder')}
-                                    onChange={(e) => setDraftAmount(e.target.value)}
+                                    onChange={(e) => {
+                                      const next = e.target.value
+                                      setDraftAmount(next)
+                                      // A unit cannot outlive the number it qualifies, or
+                                      // clearing the amount would leave a bare "g" on the pill.
+                                      if (next.trim() === '') setDraftUnit('')
+                                    }}
                                   />
+                                  {/* A unit on its own means nothing, so it stays locked
+                                      until there is an amount to qualify. */}
                                   <input
                                     className="ingredient-search"
                                     type="text"
                                     value={draftUnit}
+                                    disabled={draftAmount.trim() === ''}
                                     placeholder={t('addDish.unitPlaceholder')}
                                     onChange={(e) => setDraftUnit(e.target.value)}
                                   />

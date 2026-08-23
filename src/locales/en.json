@@ -5,7 +5,8 @@
     "favorites": "Favorites",
     "shopping": "Shopping List",
     "family": "My Family",
-    "settings": "Settings"
+    "settings": "Settings",
+    "pages": "Pages"
   },
   "fab": {
     "addDish": "Add new dish"
@@ -129,6 +130,7 @@
     "failed": "Sign-in failed: {{message}}"
   },
   "auth": {
-    "logout": "Log out"
+    "logout": "Log out",
+    "account": "Account"
   }
 }
