@@ -150,3 +150,17 @@ export async function createRecipe(recipe) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+// Mirrors setFavorite: takes the desired state rather than toggling, so retries
+// and double-taps are idempotent and can never double-count. Resolves to the
+// refreshed { recipeId, liked, likeCount }, so no follow-up read is needed.
+// `likeCount` is the global total; `liked` is only this user's own state.
+export async function setLike(recipeId, liked) {
+  const res = await apiFetch(`${BASE_URL}/like/${recipeId}`, {
+    method: 'PATCH',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ liked }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}

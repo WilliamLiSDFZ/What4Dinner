@@ -28,7 +28,8 @@
     "unlike": "Remove like",
     "favorite": "Favorite",
     "unfavorite": "Unfavorite",
-    "favoriteFailed": "Couldn't update favorite: {{message}}"
+    "favoriteFailed": "Couldn't update favorite: {{message}}",
+    "likeFailed": "Couldn't update like: {{message}}"
   },
   "favorites": {
     "title": "Favorites",

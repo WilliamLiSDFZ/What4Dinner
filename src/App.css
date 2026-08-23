@@ -434,11 +434,13 @@
 }
 
 .dish-action {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  gap: 4px;
+  min-width: 32px;
   height: 32px;
+  padding: 0 6px;
   font-size: 15px;
   color: var(--text);
   background: transparent;
@@ -455,6 +457,11 @@
 
 .dish-action.is-on {
   color: var(--accent);
+}
+
+.dish-action-count {
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .dish-card h3 {

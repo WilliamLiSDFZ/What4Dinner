@@ -92,7 +92,7 @@ export default function Favorites() {
                       role="menuitem"
                       onClick={() => handleUnfavorite(recipe.id)}
                     >
-                      <i className="bi-heartbreak" /> {t('favorites.unfavorite')}
+                      <i className="bi-star" /> {t('favorites.unfavorite')}
                     </button>
                   </div>
                 )}

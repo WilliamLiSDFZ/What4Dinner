@@ -1,65 +1,65 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
-import { getRecipes, getFavorites, setFavorite } from '../api'
+import { getRecipes, setFavorite, setLike } from '../api'
 
 export default function Menu() {
   const { t } = useTranslation()
+  // Each row already carries `favorited`, `liked` and `likeCount`, so the list
+  // is the single source of truth — no separate favorites call to cross-reference.
   const [recipes, setRecipes] = useState([])
-  // GET /v1/recipe carries no favorited flag, so the state comes from
-  // cross-referencing the favorites list by id.
-  const [favorited, setFavorited] = useState(new Set())
-  // Local only: /v1/like is still a stub controller with no endpoints, so there
-  // is nowhere to persist this yet and it resets on reload.
-  const [liked, setLiked] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState(null)
 
-  // Promise.all rather than allSettled: both calls hit the same backend with the
-  // same token, so one failing alone is not a real scenario, and showing hearts
-  // in the wrong state would be worse than the page's error line.
   useEffect(() => {
     let active = true
-    Promise.all([getRecipes(), getFavorites()])
-      .then(([list, favs]) => {
-        if (!active) return
-        setRecipes(list)
-        setFavorited(new Set(favs.map((favorite) => favorite.id)))
-      })
+    getRecipes()
+      .then((data) => { if (active) setRecipes(data) })
       .catch((err) => { if (active) setError(err.message) })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
 
-  // Flip it straight away and put it back if the request fails, as the Favorites
-  // page does. setFavorite takes the desired state rather than toggling, so a
-  // double tap lands on the same result.
-  async function toggleFavorite(id) {
-    const next = !favorited.has(id)
-    const previous = favorited
+  function patchRecipe(id, fields) {
+    setRecipes((prev) => prev.map((recipe) => (
+      recipe.id === id ? { ...recipe, ...fields } : recipe
+    )))
+  }
+
+  // Both toggles flip straight away and put the old values back if the request
+  // fails, as the Favorites page does. Each endpoint takes the desired state
+  // rather than toggling, so a double tap lands on the same result.
+  async function toggleFavorite(recipe) {
+    const next = !recipe.favorited
     setActionError(null)
-    setFavorited((prev) => {
-      const updated = new Set(prev)
-      if (next) updated.add(id)
-      else updated.delete(id)
-      return updated
-    })
+    patchRecipe(recipe.id, { favorited: next })
     try {
-      await setFavorite(id, next)
+      const result = await setFavorite(recipe.id, next)
+      patchRecipe(recipe.id, { favorited: result.favorited })
     } catch (err) {
-      setFavorited(previous)
-      setActionError(err.message)
+      patchRecipe(recipe.id, { favorited: recipe.favorited })
+      setActionError(t('menu.favoriteFailed', { message: err.message }))
     }
   }
 
-  function toggleLike(id) {
-    setLiked((prev) => {
-      const updated = new Set(prev)
-      if (updated.has(id)) updated.delete(id)
-      else updated.add(id)
-      return updated
+  async function toggleLike(recipe) {
+    const next = !recipe.liked
+    setActionError(null)
+    // The ±1 is only a guess so the number moves with the icon.
+    patchRecipe(recipe.id, {
+      liked: next,
+      likeCount: recipe.likeCount + (next ? 1 : -1),
     })
+    try {
+      const result = await setLike(recipe.id, next)
+      // likeCount is global, so other people's likes may have landed since the
+      // list was fetched — the response is authoritative, the guess is not.
+      patchRecipe(recipe.id, { liked: result.liked, likeCount: result.likeCount })
+    } catch (err) {
+      patchRecipe(recipe.id, { liked: recipe.liked, likeCount: recipe.likeCount })
+      setActionError(t('menu.likeFailed', { message: err.message }))
+    }
   }
 
   return (
@@ -68,46 +68,41 @@ export default function Menu() {
       <h1>{t('menu.title')}</h1>
       {loading && <p className="menu-status">{t('menu.loading')}</p>}
       {error && <p className="menu-status menu-error">{t('menu.error', { message: error })}</p>}
-      {actionError && (
-        <p className="menu-status menu-error">
-          {t('menu.favoriteFailed', { message: actionError })}
-        </p>
-      )}
+      {actionError && <p className="menu-status menu-error">{actionError}</p>}
       {!loading && !error && recipes.length === 0 && (
         <p className="menu-status">{t('menu.empty')}</p>
       )}
       {!loading && !error && recipes.length > 0 && (
         <div className="menu-grid">
-          {recipes.map((recipe) => {
-            const isLiked = liked.has(recipe.id)
-            const isFavorited = favorited.has(recipe.id)
-            return (
-              <div className="dish-card" key={recipe.id}>
-                <h3>{recipe.title}</h3>
-                <p>{recipe.description}</p>
-                <div className="dish-card-actions">
-                  <button
-                    type="button"
-                    className={`dish-action${isLiked ? ' is-on' : ''}`}
-                    aria-pressed={isLiked}
-                    aria-label={isLiked ? t('menu.unlike') : t('menu.like')}
-                    onClick={() => toggleLike(recipe.id)}
-                  >
-                    <i className={isLiked ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up'} />
-                  </button>
-                  <button
-                    type="button"
-                    className={`dish-action${isFavorited ? ' is-on' : ''}`}
-                    aria-pressed={isFavorited}
-                    aria-label={isFavorited ? t('menu.unfavorite') : t('menu.favorite')}
-                    onClick={() => toggleFavorite(recipe.id)}
-                  >
-                    <i className={isFavorited ? 'bi-heart-fill' : 'bi-heart'} />
-                  </button>
-                </div>
+          {recipes.map((recipe) => (
+            <div className="dish-card" key={recipe.id}>
+              <h3>{recipe.title}</h3>
+              <p>{recipe.description}</p>
+              <div className="dish-card-actions">
+                <button
+                  type="button"
+                  className={`dish-action${recipe.liked ? ' is-on' : ''}`}
+                  aria-pressed={recipe.liked}
+                  aria-label={recipe.liked ? t('menu.unlike') : t('menu.like')}
+                  onClick={() => toggleLike(recipe)}
+                >
+                  <i className={recipe.liked ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up'} />
+                  {recipe.likeCount > 0 && (
+                    <span className="dish-action-count">{recipe.likeCount}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`dish-action${recipe.favorited ? ' is-on' : ''}`}
+                  aria-pressed={recipe.favorited}
+                  aria-label={recipe.favorited ? t('menu.unfavorite') : t('menu.favorite')}
+                  onClick={() => toggleFavorite(recipe)}
+                >
+                  <i className={recipe.favorited ? 'bi-star-fill' : 'bi-star'} />
+                </button>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       )}
     </>

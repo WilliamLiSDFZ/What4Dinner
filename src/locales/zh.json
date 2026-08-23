@@ -28,7 +28,8 @@
     "unlike": "取消点赞",
     "favorite": "收藏",
     "unfavorite": "取消收藏",
-    "favoriteFailed": "更新收藏失败：{{message}}"
+    "favoriteFailed": "更新收藏失败：{{message}}",
+    "likeFailed": "更新点赞失败：{{message}}"
   },
   "favorites": {
     "title": "收藏",

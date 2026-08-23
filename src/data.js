@@ -20,7 +20,7 @@ export const initialDishes = [
 export const navItems = [
   { key: 'home', path: '/', icon: 'bi-house-door' },
   { key: 'menu', path: '/menu', icon: 'bi-book' },
-  { key: 'favorites', path: '/favorites', icon: 'bi-heart' },
+  { key: 'favorites', path: '/favorites', icon: 'bi-star' },
   { key: 'shopping', path: '/shopping', icon: 'bi-cart' },
   { key: 'family', path: '/family', icon: 'bi-people' },
   { key: 'settings', path: '/settings', icon: 'bi-gear' },
