@@ -23,7 +23,12 @@
     "title": "My Menu",
     "loading": "Loading recipes…",
     "error": "Couldn't load recipes: {{message}}",
-    "empty": "No recipes yet."
+    "empty": "No recipes yet.",
+    "like": "Like",
+    "unlike": "Remove like",
+    "favorite": "Favorite",
+    "unfavorite": "Unfavorite",
+    "favoriteFailed": "Couldn't update favorite: {{message}}"
   },
   "favorites": {
     "title": "Favorites",

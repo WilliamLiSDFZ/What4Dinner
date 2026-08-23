@@ -409,6 +409,8 @@
 }
 
 .dish-card {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
@@ -419,6 +421,40 @@
     box-shadow: var(--shadow);
     border-color: var(--accent-border);
   }
+}
+
+/* margin-top: auto pins the row to the bottom; grid items already stretch to
+   equal heights, so neighbouring cards line their buttons up. */
+.dish-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.dish-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+}
+
+.dish-action.is-on {
+  color: var(--accent);
 }
 
 .dish-card h3 {

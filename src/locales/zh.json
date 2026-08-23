@@ -23,7 +23,12 @@
     "title": "我的菜单",
     "loading": "正在加载菜谱…",
     "error": "无法加载菜谱：{{message}}",
-    "empty": "还没有菜谱。"
+    "empty": "还没有菜谱。",
+    "like": "点赞",
+    "unlike": "取消点赞",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏",
+    "favoriteFailed": "更新收藏失败：{{message}}"
   },
   "favorites": {
     "title": "收藏",
