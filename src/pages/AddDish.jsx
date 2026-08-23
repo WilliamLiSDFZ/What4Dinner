@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useContext } from 'react'
 import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { getIngredients, createIngredient } from '../api'
+import { getIngredients, createIngredient, createRecipe } from '../api'
 import { SettingsContext } from '../SettingsContext'
 
 export default function AddDish() {
@@ -17,6 +17,12 @@ export default function AddDish() {
   // Named after the backend's recipe fields so this can become the POST body as-is.
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  // Optional, and kept as strings like every other numeric input on this page.
+  const [prepTime, setPrepTime] = useState('')
+  const [cookTime, setCookTime] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState(null)
   // One row per cooking step:
   // { id, instruction, required, images: [{ id, file, url }], imageIndex }.
   // `imageIndex` is view-only carousel position — it lives on the step so that
@@ -78,24 +84,33 @@ export default function AddDish() {
   // confirmation before it is thrown away.
   const isDirty =
     title.trim() !== '' || description.trim() !== '' || steps.length > 0 || images.length > 0
+  // Once saved there is nothing left to lose, so both guards stand down —
+  // otherwise the redirect below would ask about work we just persisted.
+  const guardExit = isDirty && !saved
 
   // Covers the sidebar tabs, the Return button's navigate(-1), and the browser's
   // back/forward buttons. Requires the data router set up in App.jsx.
   const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) => isDirty && currentLocation.pathname !== nextLocation.pathname,
+    ({ currentLocation, nextLocation }) => guardExit && currentLocation.pathname !== nextLocation.pathname,
   )
+
+  // Navigating from an effect rather than the submit handler: the blocker has to
+  // re-render with `saved` true first, or its predicate would still be armed.
+  useEffect(() => {
+    if (saved) navigate('/menu')
+  }, [saved, navigate])
 
   // The other half: refreshing, closing the tab, or navigating away from the app
   // entirely. The browser owns this dialog, so its wording cannot be set here.
   useEffect(() => {
-    if (!isDirty) return
+    if (!guardExit) return
     const onBeforeUnload = (e) => {
       e.preventDefault()
       e.returnValue = ''
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [isDirty])
+  }, [guardExit])
 
   // Dismiss the picker on Escape or a click outside it, as the Favorites row
   // menu does. The create dialog closes the picker first, so there is no
@@ -305,6 +320,45 @@ export default function AddDish() {
     }
   }
 
+  async function submitRecipe(e) {
+    e.preventDefault()
+    if (!title.trim() || saving) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await createRecipe({
+        title: title.trim(),
+        description: description.trim() || null,
+        prepTimeMinutes: prepTime.trim() === '' ? null : Number(prepTime),
+        cookTimeMinutes: cookTime.trim() === '' ? null : Number(cookTime),
+        isPublic: false,
+        // Order is positional — the backend derives step_order from the index,
+        // so nothing sends it. Photos are deliberately left out: no endpoint
+        // accepts an image for a recipe yet.
+        steps: steps.map((step) => ({
+          instruction: step.instruction.trim() || null,
+          // The form asks "is this step required"; the API asks the opposite.
+          isOptional: !step.required,
+          ingredients: step.ingredients.map((ingredient) => ({
+            ingredientId: ingredient.id,
+            amount: ingredient.amount === '' ? null : Number(ingredient.amount),
+            unit: ingredient.unit || null,
+            // Same polarity here — only the step flag is inverted.
+            isOptional: ingredient.optional,
+          })),
+        })),
+      })
+      setSaved(true)
+    } catch (err) {
+      setSaveError(
+        err.message === 'HTTP 400'
+          ? t('addDish.saveInvalid')
+          : t('addDish.saveFailed', { message: err.message }),
+      )
+      setSaving(false)
+    }
+  }
+
   function submitOnEnter(e) {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -381,10 +435,7 @@ export default function AddDish() {
         )}
 
         {manual && (
-          // A real form so Enter submits and the later steps have somewhere to
-          // hang validation; there is nothing to send until the create endpoint
-          // exists, so the handler only stops the browser navigating.
-          <form className="add-dish-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="add-dish-form" onSubmit={submitRecipe}>
             <div className="add-dish-field">
               <label className="add-dish-label" htmlFor="dish-title">
                 {t('addDish.titleLabel')}
@@ -411,6 +462,41 @@ export default function AddDish() {
                 placeholder={t('addDish.descriptionPlaceholder')}
                 onChange={(e) => setDescription(e.target.value)}
               />
+            </div>
+
+            <div className="add-dish-times">
+              <div className="add-dish-field">
+                <label className="add-dish-label" htmlFor="dish-prep">
+                  {t('addDish.prepTime')}
+                </label>
+                <input
+                  id="dish-prep"
+                  className="add-dish-input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={prepTime}
+                  placeholder={t('addDish.timePlaceholder')}
+                  onChange={(e) => setPrepTime(e.target.value)}
+                />
+              </div>
+              <div className="add-dish-field">
+                <label className="add-dish-label" htmlFor="dish-cook">
+                  {t('addDish.cookTime')}
+                </label>
+                <input
+                  id="dish-cook"
+                  className="add-dish-input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={cookTime}
+                  placeholder={t('addDish.timePlaceholder')}
+                  onChange={(e) => setCookTime(e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="add-dish-steps">
@@ -708,11 +794,13 @@ export default function AddDish() {
               </button>
             </div>
 
+            {saveError && <p className="menu-status menu-error">{saveError}</p>}
+
             {/* Floats bottom-right on .fab — position: fixed places it against the
                 viewport, so it can stay inside the form and keep submitting.
                 Only the title is required; the backend allows a null description. */}
-            <button type="submit" className="fab add-dish-save" disabled={!title.trim()}>
-              {t('addDish.save')}
+            <button type="submit" className="fab add-dish-save" disabled={!title.trim() || saving}>
+              {saving ? t('addDish.saving') : t('addDish.save')}
             </button>
           </form>
         )}

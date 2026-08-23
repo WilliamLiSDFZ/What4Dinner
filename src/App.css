@@ -1111,6 +1111,17 @@
   box-shadow: none;
 }
 
+/* Two short fields side by side; they stack with the rest of the form on a phone. */
+.add-dish-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.add-dish-times .add-dish-field {
+  flex: 1 1 160px;
+}
+
 .add-dish-steps {
   display: flex;
   flex-direction: column;

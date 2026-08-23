@@ -135,3 +135,18 @@ export async function updateSettings(patch) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+// Creates the recipe, its ordered steps and each step's ingredients in a single
+// transaction — if any part is rejected, nothing is written. Step order is
+// positional (taken from the array index), so no step_order is ever sent, and
+// every ingredientId must already exist in the caller's family. A 400 means a
+// blank title, a negative time or amount, or an unknown ingredient.
+export async function createRecipe(recipe) {
+  const res = await apiFetch(`${BASE_URL}/recipe`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(recipe),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
