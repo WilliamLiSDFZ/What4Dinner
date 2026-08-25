@@ -1649,6 +1649,18 @@
   }
 }
 
+.step-image-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 999px;
+}
+
 .step-carousel-count {
   position: absolute;
   left: 50%;

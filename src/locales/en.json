@@ -90,6 +90,8 @@
     "uploadPrompt": "Drop recipe photos here",
     "uploadHint": "or click to browse",
     "removePhoto": "Remove photo",
+    "uploading": "Uploading\u2026",
+    "uploadFailed": "Upload failed",
     "manualEntry": "Enter manually",
     "titleLabel": "Dish name",
     "titlePlaceholder": "e.g. Tomato & Egg Stir-fry",

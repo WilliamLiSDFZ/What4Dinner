@@ -1,8 +1,18 @@
 import { useState, useRef, useEffect, useContext } from 'react'
 import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { getIngredients, createIngredient, createRecipe } from '../api'
+import {
+  getIngredients,
+  createIngredient,
+  createRecipe,
+  getUploadUrl,
+  uploadToSignedUrl,
+} from '../api'
 import { SettingsContext } from '../SettingsContext'
+
+// The upload-url endpoint only accepts these four, so filter at pick time
+// rather than letting the user find out at save.
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
 
 export default function AddDish() {
   const { t } = useTranslation()
@@ -82,6 +92,10 @@ export default function AddDish() {
   // Nothing is persisted until Save exists, so anything the user has entered —
   // including photos picked before switching to manual entry — is worth a
   // confirmation before it is thrown away.
+  // Saving mid-upload would drop images whose key has not arrived; failed ones
+  // do not block, they are marked and simply excluded.
+  const uploading = steps.some((step) => step.images.some((image) => image.uploading))
+
   const isDirty =
     title.trim() !== '' || description.trim() !== '' || steps.length > 0 || images.length > 0
   // Once saved there is nothing left to lose, so both guards stand down —
@@ -179,11 +193,42 @@ export default function AddDish() {
   // double-invoke of the updater cannot leak a discarded first set.
   function addStepFiles(id, fileList) {
     const added = [...fileList]
-      .filter((file) => file.type.startsWith('image/'))
-      .map((file) => ({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file) }))
+      .filter((file) => ACCEPTED_IMAGE_TYPES.includes(file.type))
+      .map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        url: URL.createObjectURL(file),
+        objectName: null,
+        uploading: true,
+        failed: false,
+      }))
     if (added.length === 0) return
+    // Show the previews at once, then upload in the background.
     setSteps((prev) => prev.map((step) => (
       step.id === id ? { ...step, images: [...step.images, ...added] } : step
+    )))
+    added.forEach((image) => uploadStepImage(id, image))
+  }
+
+  // Three legs: ask for a signed URL, PUT the bytes straight to GCS, then keep
+  // the object key for the recipe payload.
+  async function uploadStepImage(stepId, image) {
+    try {
+      const target = await getUploadUrl('step', image.file.type)
+      await uploadToSignedUrl(target, image.file)
+      patchStepImage(stepId, image.id, { objectName: target.objectName, uploading: false })
+    } catch {
+      patchStepImage(stepId, image.id, { uploading: false, failed: true })
+    }
+  }
+
+  function patchStepImage(stepId, imageId, fields) {
+    setSteps((prev) => prev.map((step) => (
+      step.id === stepId
+        ? { ...step, images: step.images.map((image) => (
+            image.id === imageId ? { ...image, ...fields } : image
+          )) }
+        : step
     )))
   }
 
@@ -339,6 +384,9 @@ export default function AddDish() {
           instruction: step.instruction.trim() || null,
           // The form asks "is this step required"; the API asks the opposite.
           isOptional: !step.required,
+          // filter covers in-flight and failed uploads; insertion order is what
+          // the backend uses, since the table has no ordering column.
+          imageKeys: step.images.map((image) => image.objectName).filter(Boolean),
           ingredients: step.ingredients.map((ingredient) => ({
             ingredientId: ingredient.id,
             amount: ingredient.amount === '' ? null : Number(ingredient.amount),
@@ -383,6 +431,9 @@ export default function AddDish() {
           <i className="bi-arrow-left" /> {t('addDish.return')}
         </button>
 
+        {/* A separate pipeline from the step photos below: these are destined for
+            AI recipe generation, not for attaching to the recipe being typed, so
+            they deliberately do not feed steps[].imageKeys. */}
         {!manual && (
           <>
             <button
@@ -761,6 +812,14 @@ export default function AddDish() {
                             >
                               <i className="bi-chevron-right" />
                             </button>
+                            {(step.images[step.imageIndex].uploading
+                              || step.images[step.imageIndex].failed) && (
+                              <span className="step-image-badge">
+                                {step.images[step.imageIndex].uploading
+                                  ? t('addDish.uploading')
+                                  : t('addDish.uploadFailed')}
+                              </span>
+                            )}
                             <span className="step-carousel-count">
                               {step.imageIndex + 1} / {step.images.length}
                             </span>
@@ -780,7 +839,7 @@ export default function AddDish() {
                           else delete stepInputs.current[step.id]
                         }}
                         type="file"
-                        accept="image/*"
+                        accept={ACCEPTED_IMAGE_TYPES.join(',')}
                         multiple
                         hidden
                         onChange={(e) => { addStepFiles(step.id, e.target.files); e.target.value = '' }}
@@ -799,7 +858,7 @@ export default function AddDish() {
             {/* Floats bottom-right on .fab — position: fixed places it against the
                 viewport, so it can stay inside the form and keep submitting.
                 Only the title is required; the backend allows a null description. */}
-            <button type="submit" className="fab add-dish-save" disabled={!title.trim() || saving}>
+            <button type="submit" className="fab add-dish-save" disabled={!title.trim() || saving || uploading}>
               {saving ? t('addDish.saving') : t('addDish.save')}
             </button>
           </form>

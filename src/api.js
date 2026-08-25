@@ -164,3 +164,26 @@ export async function setLike(recipeId, liked) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+// Asks for a short-lived signed PUT URL. The object key is always generated
+// server-side — `purpose` and `contentType` are only lookup keys against fixed
+// allowlists, never interpolated into the path.
+export async function getUploadUrl(purpose, contentType) {
+  const res = await apiFetch(`${BASE_URL}/image/upload-url`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ purpose, contentType }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// Deliberately a bare fetch, not apiFetch: this goes straight to GCS rather than
+// our backend, so the 401 -> logout handling would be wrong, and the signature
+// covers content-type;host — an Authorization header (or any other extra header)
+// would fail it with SignatureDoesNotMatch. The method and headers come from the
+// upload-url response verbatim rather than being re-derived here.
+export async function uploadToSignedUrl({ uploadUrl, method, requiredHeaders }, file) {
+  const res = await fetch(uploadUrl, { method, headers: requiredHeaders, body: file })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
