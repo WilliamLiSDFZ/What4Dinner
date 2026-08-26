@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
-import { getRecipes, setFavorite, setLike } from '../api'
+import { getRecipes, setFavorite, setLike, deleteRecipe } from '../api'
 
 export default function Menu() {
   const { t } = useTranslation()
@@ -15,6 +15,10 @@ export default function Menu() {
   // second card's menu closes the first for free.
   const [openMenuId, setOpenMenuId] = useState(null)
   const menuRef = useRef(null)
+  // Recipe awaiting delete confirmation; null when the dialog is closed.
+  const [pendingDelete, setPendingDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -39,6 +43,38 @@ export default function Menu() {
       document.removeEventListener('pointerdown', onPointerDown)
     }
   }, [openMenuId])
+
+  // Its own effect: opening the dialog closes the row menu first, so this never
+  // competes with the menu's Escape handler.
+  useEffect(() => {
+    if (!pendingDelete) return
+    const onKeyDown = (e) => { if (e.key === 'Escape') setPendingDelete(null) }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [pendingDelete])
+
+  function askDelete(recipe) {
+    setOpenMenuId(null)
+    setPendingDelete(recipe)
+    setDeleteError(null)
+  }
+
+  // Waits for the 204 before removing the card, unlike the optimistic like and
+  // favorite toggles: a card that vanished and then came back on failure would
+  // read as data loss followed by resurrection.
+  async function confirmDelete() {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await deleteRecipe(pendingDelete.id)
+      setRecipes((prev) => prev.filter((recipe) => recipe.id !== pendingDelete.id))
+      setPendingDelete(null)
+    } catch (err) {
+      setDeleteError(t('menu.deleteFailed', { message: err.message }))
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   function patchRecipe(id, fields) {
     setRecipes((prev) => prev.map((recipe) => (
@@ -136,12 +172,13 @@ export default function Menu() {
                   {openMenuId === recipe.id && (
                     // Opens upward: the actions sit at the card's bottom edge.
                     <div className="dish-menu-dropdown" role="menu">
-                      {/* Disabled until the backend has a recipe delete. Wiring it
-                          up means adding deleteRecipe() to src/api.js *and* the
-                          agreed confirmation dialog — deleting is irreversible. */}
-                      <button className="dish-menu-item" role="menuitem" disabled>
+                      <button
+                        type="button"
+                        className="dish-menu-item"
+                        role="menuitem"
+                        onClick={() => askDelete(recipe)}
+                      >
                         <i className="bi-trash" /> {t('menu.delete')}
-                        <span className="dish-menu-soon">{t('menu.soon')}</span>
                       </button>
                     </div>
                   )}
@@ -149,6 +186,34 @@ export default function Menu() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {pendingDelete && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <p>{t('menu.confirmDelete', { title: pendingDelete.title })}</p>
+            {deleteError && <p className="menu-status menu-error">{deleteError}</p>}
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-cancel"
+                disabled={deleting}
+                onClick={() => setPendingDelete(null)}
+              >
+                {t('addDish.cancel')}
+              </button>
+              {/* Both disabled in flight so a double-click cannot fire two deletes. */}
+              <button
+                type="button"
+                className="modal-confirm"
+                disabled={deleting}
+                onClick={confirmDelete}
+              >
+                {deleting ? t('menu.deleting') : t('menu.delete')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>

@@ -504,11 +504,6 @@
   }
 }
 
-.dish-menu-soon {
-  margin-left: auto;
-  font-size: 12px;
-}
-
 .dish-action.is-on {
   color: var(--accent);
 }

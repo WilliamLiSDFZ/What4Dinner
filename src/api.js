@@ -187,3 +187,16 @@ export async function uploadToSignedUrl({ uploadUrl, method, requiredHeaders }, 
   const res = await fetch(uploadUrl, { method, headers: requiredHeaders, body: file })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
+
+// 204 No Content: the one endpoint here with no body, so it must not call
+// res.json() — resolving to undefined is correct, not an oversight.
+// Family-scoped: any member may delete any of the family's recipes, and
+// everything attached (steps, images, favorites, likes, shopping-list entries)
+// cascades away with it. A 404 means "not in your family".
+export async function deleteRecipe(recipeId) {
+  const res = await apiFetch(`${BASE_URL}/recipe/${recipeId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}

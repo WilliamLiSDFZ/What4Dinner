@@ -32,7 +32,9 @@
     "likeFailed": "Couldn't update like: {{message}}",
     "rowActions": "Row actions",
     "delete": "Delete",
-    "soon": "Soon"
+    "deleting": "Deleting\u2026",
+    "confirmDelete": "Delete \u201c{{title}}\u201d? This cannot be undone.",
+    "deleteFailed": "Couldn't delete: {{message}}"
   },
   "favorites": {
     "title": "Favorites",

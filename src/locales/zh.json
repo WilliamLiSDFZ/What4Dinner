@@ -32,7 +32,9 @@
     "likeFailed": "更新点赞失败：{{message}}",
     "rowActions": "更多操作",
     "delete": "删除",
-    "soon": "即将推出"
+    "deleting": "正在删除\u2026",
+    "confirmDelete": "确定删除《{{title}}》吗？此操作无法撤销。",
+    "deleteFailed": "删除失败：{{message}}"
   },
   "favorites": {
     "title": "收藏",
