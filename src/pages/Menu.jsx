@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
 import { getRecipes, setFavorite, setLike } from '../api'
@@ -11,6 +11,10 @@ export default function Menu() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState(null)
+  // Id of the card whose row menu is open — only one at a time, so opening a
+  // second card's menu closes the first for free.
+  const [openMenuId, setOpenMenuId] = useState(null)
+  const menuRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -20,6 +24,21 @@ export default function Menu() {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
+
+  // Dismiss the row menu on Escape or a click outside it, as the Favorites page does.
+  useEffect(() => {
+    if (!openMenuId) return
+    const onKeyDown = (e) => { if (e.key === 'Escape') setOpenMenuId(null) }
+    const onPointerDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuId(null)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [openMenuId])
 
   function patchRecipe(id, fields) {
     setRecipes((prev) => prev.map((recipe) => (
@@ -100,6 +119,33 @@ export default function Menu() {
                 >
                   <i className={recipe.favorited ? 'bi-star-fill' : 'bi-star'} />
                 </button>
+                <div
+                  className="dish-menu"
+                  ref={openMenuId === recipe.id ? menuRef : null}
+                >
+                  <button
+                    type="button"
+                    className="dish-action"
+                    aria-haspopup="menu"
+                    aria-expanded={openMenuId === recipe.id}
+                    aria-label={t('menu.rowActions')}
+                    onClick={() => setOpenMenuId((id) => (id === recipe.id ? null : recipe.id))}
+                  >
+                    <i className="bi-three-dots" />
+                  </button>
+                  {openMenuId === recipe.id && (
+                    // Opens upward: the actions sit at the card's bottom edge.
+                    <div className="dish-menu-dropdown" role="menu">
+                      {/* Disabled until the backend has a recipe delete. Wiring it
+                          up means adding deleteRecipe() to src/api.js *and* the
+                          agreed confirmation dialog — deleting is irreversible. */}
+                      <button className="dish-menu-item" role="menuitem" disabled>
+                        <i className="bi-trash" /> {t('menu.delete')}
+                        <span className="dish-menu-soon">{t('menu.soon')}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}

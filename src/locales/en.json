@@ -29,7 +29,10 @@
     "favorite": "Favorite",
     "unfavorite": "Unfavorite",
     "favoriteFailed": "Couldn't update favorite: {{message}}",
-    "likeFailed": "Couldn't update like: {{message}}"
+    "likeFailed": "Couldn't update like: {{message}}",
+    "rowActions": "Row actions",
+    "delete": "Delete",
+    "soon": "Soon"
   },
   "favorites": {
     "title": "Favorites",

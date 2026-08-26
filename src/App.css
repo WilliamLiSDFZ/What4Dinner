@@ -455,6 +455,60 @@
   }
 }
 
+.dish-menu {
+  position: relative;
+}
+
+/* Opens upward because the actions row sits at the card's bottom edge; a
+   downward menu would hang past the card and, on the last grid row, off the
+   fold. Positioned elements paint above static ones, so z-index alone clears
+   the neighbouring (static) cards. */
+.dish-menu-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 168px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.dish-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
+
+  /* :hover still matches a disabled button, hence the :not() above. */
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.dish-menu-soon {
+  margin-left: auto;
+  font-size: 12px;
+}
+
 .dish-action.is-on {
   color: var(--accent);
 }
@@ -629,7 +683,7 @@
   z-index: 50;
   min-width: 168px;
   padding: 6px;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: var(--shadow);
