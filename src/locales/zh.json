@@ -36,6 +36,21 @@
     "confirmDelete": "确定删除《{{title}}》吗？此操作无法撤销。",
     "deleteFailed": "删除失败：{{message}}"
   },
+  "detail": {
+    "back": "返回菜单",
+    "loading": "正在加载菜谱\u2026",
+    "error": "无法加载菜谱：{{message}}",
+    "prepTime": "准备",
+    "cookTime": "烹饪",
+    "minutes": "{{count}} 分钟",
+    "steps": "步骤",
+    "noSteps": "这道菜还没有步骤。",
+    "optionalStep": "可选",
+    "like": "点赞",
+    "unlike": "取消点赞",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏"
+  },
   "favorites": {
     "title": "收藏",
     "loading": "正在加载收藏…",

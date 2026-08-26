@@ -8,6 +8,7 @@ import Shopping from './pages/Shopping'
 import Family from './pages/Family'
 import Settings from './pages/Settings'
 import AddDish from './pages/AddDish'
+import RecipeDetail from './pages/RecipeDetail'
 import Callback from './pages/Callback'
 
 // A data router rather than <BrowserRouter>: useBlocker — the unsaved-changes
@@ -20,6 +21,7 @@ export const router = createBrowserRouter(
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
+        <Route path="recipe/:id" element={<RecipeDetail />} />
         <Route path="favorites" element={<Favorites />} />
         <Route path="shopping" element={<Shopping />} />
         <Route path="family" element={<Family />} />

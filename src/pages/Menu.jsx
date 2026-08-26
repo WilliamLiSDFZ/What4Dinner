@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
 import { getRecipes, setFavorite, setLike, deleteRecipe } from '../api'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function Menu() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   // Each row already carries `favorited`, `liked` and `likeCount`, so the list
   // is the single source of truth — no separate favorites call to cross-reference.
   const [recipes, setRecipes] = useState([])
@@ -130,10 +133,19 @@ export default function Menu() {
       {!loading && !error && recipes.length > 0 && (
         <div className="menu-grid">
           {recipes.map((recipe) => (
-            <div className="dish-card" key={recipe.id}>
-              <h3>{recipe.title}</h3>
+            // The card surface opens the recipe; the title is also a real link
+            // so the detail is reachable by keyboard, not only by clicking.
+            <div
+              className="dish-card is-clickable"
+              key={recipe.id}
+              onClick={() => navigate(`/recipe/${recipe.id}`)}
+            >
+              <h3>
+                <Link className="dish-card-link" to={`/recipe/${recipe.id}`}>{recipe.title}</Link>
+              </h3>
               <p>{recipe.description}</p>
-              <div className="dish-card-actions">
+              {/* Stops the action buttons from also opening the recipe. */}
+              <div className="dish-card-actions" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
                   className={`dish-action${recipe.liked ? ' is-on' : ''}`}
@@ -190,31 +202,16 @@ export default function Menu() {
       )}
 
       {pendingDelete && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <p>{t('menu.confirmDelete', { title: pendingDelete.title })}</p>
-            {deleteError && <p className="menu-status menu-error">{deleteError}</p>}
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="modal-cancel"
-                disabled={deleting}
-                onClick={() => setPendingDelete(null)}
-              >
-                {t('addDish.cancel')}
-              </button>
-              {/* Both disabled in flight so a double-click cannot fire two deletes. */}
-              <button
-                type="button"
-                className="modal-confirm"
-                disabled={deleting}
-                onClick={confirmDelete}
-              >
-                {deleting ? t('menu.deleting') : t('menu.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          message={t('menu.confirmDelete', { title: pendingDelete.title })}
+          error={deleteError}
+          busy={deleting}
+          cancelLabel={t('addDish.cancel')}
+          confirmLabel={t('menu.delete')}
+          busyLabel={t('menu.deleting')}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={confirmDelete}
+        />
       )}
     </>
   )

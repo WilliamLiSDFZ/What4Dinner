@@ -36,6 +36,21 @@
     "confirmDelete": "Delete \u201c{{title}}\u201d? This cannot be undone.",
     "deleteFailed": "Couldn't delete: {{message}}"
   },
+  "detail": {
+    "back": "Back to menu",
+    "loading": "Loading recipe\u2026",
+    "error": "Couldn't load recipe: {{message}}",
+    "prepTime": "Prep",
+    "cookTime": "Cook",
+    "minutes": "{{count}} min",
+    "steps": "Steps",
+    "noSteps": "This recipe has no steps.",
+    "optionalStep": "Optional",
+    "like": "Like",
+    "unlike": "Remove like",
+    "favorite": "Favorite",
+    "unfavorite": "Unfavorite"
+  },
   "favorites": {
     "title": "Favorites",
     "loading": "Loading favorites…",

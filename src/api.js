@@ -200,3 +200,14 @@ export async function deleteRecipe(recipeId) {
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
+
+// One recipe in full: header, your favorite/like state, and steps ordered by
+// stepOrder with their ingredients (names joined in, so no second call) and
+// images. Family-scoped, so a 404 means "not in your family".
+// `steps[].images` are short-lived *signed GET URLs*, not object keys — they
+// expire in about 15 minutes, so fetch this fresh rather than caching them.
+export async function getRecipe(recipeId) {
+  const res = await apiFetch(`${BASE_URL}/recipe/${recipeId}`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
