@@ -397,7 +397,6 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  margin-bottom: 24px;
   font-size: 15px;
   font-weight: 500;
   color: var(--text);
@@ -418,7 +417,7 @@
    each step row now carries a media column beside its text. */
 .detail-page {
   max-width: 900px;
-  margin: 0 auto;
+  margin: 24px auto 0;
 }
 
 .detail-header {

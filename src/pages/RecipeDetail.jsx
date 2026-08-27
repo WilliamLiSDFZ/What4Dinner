@@ -106,11 +106,14 @@ export default function RecipeDetail() {
   }
 
   return (
-    <div className="detail-page">
+    <>
+      {/* Outside the centred column, so it sits at the page's top-left corner —
+          the same relationship /add has between Return and its form. */}
       <Link className="detail-back" to="/menu">
         <i className="bi-arrow-left" /> {t('detail.back')}
       </Link>
 
+      <div className="detail-page">
       {loading && <p className="menu-status">{t('detail.loading')}</p>}
       {error && <p className="menu-status menu-error">{t('detail.error', { message: error })}</p>}
 
@@ -268,6 +271,8 @@ export default function RecipeDetail() {
         </article>
       )}
 
+      </div>
+
       {confirmingDelete && recipe && (
         <ConfirmDialog
           message={t('menu.confirmDelete', { title: recipe.title })}
@@ -291,6 +296,6 @@ export default function RecipeDetail() {
           />
         </div>
       )}
-    </div>
+    </>
   )
 }
