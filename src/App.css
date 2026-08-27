@@ -413,8 +413,12 @@
   }
 }
 
-.detail {
-  max-width: 760px;
+/* The whole page shares one centred column — the back button included, so it
+   lines up with the title rather than floating at the page edge. 900px because
+   each step row now carries a media column beside its text. */
+.detail-page {
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .detail-header {
@@ -480,6 +484,14 @@
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.detail-step-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
@@ -508,8 +520,69 @@
 }
 
 .detail-step-media {
+  flex: 0 0 280px;
+}
+
+.detail-carousel {
+  position: relative;
+}
+
+.detail-carousel-stage {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+/* Each slide is 72% of the stage and centred, so a neighbour pushed outward
+   still shows about half of itself before the stage clips it. Transitioning
+   transform is what produces the slide — changing the index re-computes every
+   offset and they all move together, no keyframes needed. */
+.detail-slide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 14%;
+  right: 14%;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(calc(var(--offset) * 78%)) scale(0.8);
+  transition: transform 0.32s ease, opacity 0.32s ease;
+}
+
+.detail-slide.is-peek {
+  opacity: 0.45;
+}
+
+.detail-slide.is-current {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.detail-slide img {
+  display: block;
   width: 100%;
-  max-width: 320px;
+  height: 100%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.detail-slide-open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: zoom-in;
+}
+
+/* Above the slides so the controls stay usable over the centre image. */
+.detail-carousel .step-carousel-nav,
+.detail-carousel .step-carousel-count {
+  z-index: 3;
 }
 
 .menu-grid {
@@ -1936,6 +2009,15 @@
   .step-body,
   .step-media {
     flex: 1 1 100%;
+  }
+
+  .detail-step-body {
+    flex-direction: column;
+  }
+
+  .detail-step-media {
+    flex: 1 1 100%;
+    width: 100%;
   }
 
   /* An empty placeholder does not need the space; a real photo does. */

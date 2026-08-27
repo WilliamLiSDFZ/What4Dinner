@@ -96,15 +96,17 @@ export default function RecipeDetail() {
     }
   }
 
+  // Clamped, not wrapped: with neighbours peeking in, looping would show the
+  // last image to the left of the first, which reads as a bug.
   function step(stepId, images, delta) {
     setImageIndex((prev) => {
       const current = prev[stepId] ?? 0
-      return { ...prev, [stepId]: (current + delta + images.length) % images.length }
+      return { ...prev, [stepId]: Math.min(Math.max(current + delta, 0), images.length - 1) }
     })
   }
 
   return (
-    <>
+    <div className="detail-page">
       <Link className="detail-back" to="/menu">
         <i className="bi-arrow-left" /> {t('detail.back')}
       </Link>
@@ -176,6 +178,7 @@ export default function RecipeDetail() {
                     <span className="step-number">{s.stepOrder}</span>
                   </div>
                   <div className="detail-step-body">
+                    <div className="detail-step-text">
                     {s.isOptional && (
                       <span className="detail-optional">{t('detail.optionalStep')}</span>
                     )}
@@ -199,22 +202,45 @@ export default function RecipeDetail() {
                         })}
                       </div>
                     )}
+                    </div>
                     {s.images.length > 0 && (
                       <div className="detail-step-media">
-                        <div className="step-carousel-frame">
-                          <button
-                            type="button"
-                            className="step-carousel-image"
-                            aria-label={t('addDish.enlargePhoto')}
-                            onClick={() => setLightboxUrl(s.images[index])}
-                          >
-                            <img src={s.images[index]} alt="" />
-                          </button>
+                        <div className="detail-carousel">
+                          <div className="detail-carousel-stage">
+                            {s.images.map((url, i) => {
+                              const offset = i - index
+                              const distance = Math.abs(offset)
+                              // Only the centre slide is interactive; the peeks are
+                              // decorative, so they are hidden from assistive tech
+                              // and take no pointer events.
+                              return (
+                                <div
+                                  key={url}
+                                  className={`detail-slide${distance === 0 ? ' is-current' : distance === 1 ? ' is-peek' : ''}`}
+                                  style={{ '--offset': offset }}
+                                  aria-hidden={distance !== 0}
+                                >
+                                  {distance === 0 ? (
+                                    <button
+                                      type="button"
+                                      className="detail-slide-open"
+                                      aria-label={t('addDish.enlargePhoto')}
+                                      onClick={() => setLightboxUrl(url)}
+                                    >
+                                      <img src={url} alt="" />
+                                    </button>
+                                  ) : (
+                                    <img src={url} alt="" />
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
                           <button
                             type="button"
                             className="step-carousel-nav is-prev"
                             aria-label={t('addDish.prevPhoto')}
-                            disabled={s.images.length < 2}
+                            disabled={index === 0}
                             onClick={() => step(s.id, s.images, -1)}
                           >
                             <i className="bi-chevron-left" />
@@ -223,7 +249,7 @@ export default function RecipeDetail() {
                             type="button"
                             className="step-carousel-nav is-next"
                             aria-label={t('addDish.nextPhoto')}
-                            disabled={s.images.length < 2}
+                            disabled={index === s.images.length - 1}
                             onClick={() => step(s.id, s.images, 1)}
                           >
                             <i className="bi-chevron-right" />
@@ -265,6 +291,6 @@ export default function RecipeDetail() {
           />
         </div>
       )}
-    </>
+    </div>
   )
 }
