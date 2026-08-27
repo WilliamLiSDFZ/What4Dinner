@@ -420,10 +420,49 @@
   margin: 24px auto 0;
 }
 
+/* Two even columns: the title, description, chips and actions on the left, the
+   recipe's own photos on the right. */
 .detail-header {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
   padding-bottom: 20px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
+}
+
+/* flex-basis 0 rather than auto is what makes the split an even half — on auto
+   a long title or a wide photo would decide the ratio between them. */
+.detail-header-text,
+.detail-header-media {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.detail-header-media .step-add-image {
+  margin-top: 8px;
+}
+
+/* Stands in for the carousel stage when the recipe has no photos yet, so it
+   takes the same 4 / 3 box. Otherwise the dashed treatment of .step-upload. */
+.detail-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  font-size: 24px;
+  color: var(--accent);
+  background: transparent;
+  border: 2px dashed var(--accent-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
 }
 
 .detail-description {
@@ -2008,6 +2047,22 @@
   .step-body,
   .step-media {
     flex: 1 1 100%;
+  }
+
+  .detail-header {
+    flex-direction: column;
+    /* flex-start is what keeps the two columns from stretching to a shared
+       height side by side; stacked there is no shared height to avoid, and
+       leaving it would shrink each block to its own content width. */
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  /* Stacked, the even-halves basis would be dividing the height rather than the
+     width, so each block goes back to taking the space it needs. */
+  .detail-header-text,
+  .detail-header-media {
+    flex: 0 0 auto;
   }
 
   .detail-step-body {

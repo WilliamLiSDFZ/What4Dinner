@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useContext } from 'react'
 import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
+  ACCEPTED_IMAGE_TYPES,
   getIngredients,
   createIngredient,
   createRecipe,
@@ -9,10 +10,6 @@ import {
   uploadToSignedUrl,
 } from '../api'
 import { SettingsContext } from '../SettingsContext'
-
-// The upload-url endpoint only accepts these four, so filter at pick time
-// rather than letting the user find out at save.
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
 
 export default function AddDish() {
   const { t } = useTranslation()

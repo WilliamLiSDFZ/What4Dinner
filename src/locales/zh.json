@@ -46,6 +46,8 @@
     "steps": "步骤",
     "noSteps": "这道菜还没有步骤。",
     "optionalStep": "可选",
+    "addPhoto": "添加照片",
+    "photoFailed": "照片上传失败：{{message}}",
     "like": "点赞",
     "unlike": "取消点赞",
     "favorite": "收藏",

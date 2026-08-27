@@ -46,6 +46,8 @@
     "steps": "Steps",
     "noSteps": "This recipe has no steps.",
     "optionalStep": "Optional",
+    "addPhoto": "Add photo",
+    "photoFailed": "Couldn't upload photo: {{message}}",
     "like": "Like",
     "unlike": "Remove like",
     "favorite": "Favorite",

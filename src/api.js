@@ -165,6 +165,12 @@ export async function setLike(recipeId, liked) {
   return res.json()
 }
 
+// Mirrors the contentType allowlist the upload-url endpoint enforces, so a file
+// the backend would reject is filtered out at pick time rather than at save.
+// Lives here beside getUploadUrl because it is that endpoint's contract, not any
+// one page's; both the add form and the detail page read it.
+export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
+
 // Asks for a short-lived signed PUT URL. The object key is always generated
 // server-side — `purpose` and `contentType` are only lookup keys against fixed
 // allowlists, never interpolated into the path.
@@ -186,6 +192,24 @@ export async function getUploadUrl(purpose, contentType) {
 export async function uploadToSignedUrl({ uploadUrl, method, requiredHeaders }, file) {
   const res = await fetch(uploadUrl, { method, headers: requiredHeaders, body: file })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+// Attaches already-uploaded photos to the recipe itself — recipe-level images,
+// which are a different set from steps[].images. The recipe has to exist first,
+// so this is the detail page's job rather than the create form's.
+// `primaryIndex` picks the cover and is left out entirely when null, which tells
+// the backend to append without disturbing any existing cover. There is no way
+// to change a cover afterwards, and no endpoint to detach or reorder an image.
+// Resolves to *every* image on the recipe, ordered by displayOrder, so the
+// response replaces the local list rather than being appended to it.
+export async function addRecipeImages(recipeId, imageKeys, primaryIndex = null) {
+  const res = await apiFetch(`${BASE_URL}/recipe/${recipeId}/image`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(primaryIndex == null ? { imageKeys } : { imageKeys, primaryIndex }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
 }
 
 // 204 No Content: the one endpoint here with no body, so it must not call
