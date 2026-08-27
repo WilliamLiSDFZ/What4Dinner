@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getFavorites, setFavorite } from '../api'
 
 export default function Favorites() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -66,15 +68,25 @@ export default function Favorites() {
       {!loading && !error && favorites.length > 0 && (
         <ul className="favorites-list">
           {favorites.map((recipe, index) => (
-            <li className="favorites-item" key={recipe.id}>
+            // The row surface opens the recipe; the title is also a real link so
+            // the detail is reachable by keyboard, as on the menu cards.
+            <li
+              className="favorites-item"
+              key={recipe.id}
+              onClick={() => navigate(`/recipe/${recipe.id}`)}
+            >
               <span className="favorites-rank">{index + 1}</span>
               <div className="favorites-info">
-                <h3>{recipe.title}</h3>
+                <h3>
+                  <Link className="dish-card-link" to={`/recipe/${recipe.id}`}>{recipe.title}</Link>
+                </h3>
                 <p>{recipe.description}</p>
               </div>
+              {/* Stops the row menu from also opening the recipe. */}
               <div
                 className="favorites-actions"
                 ref={openMenuId === recipe.id ? menuRef : null}
+                onClick={(e) => e.stopPropagation()}
               >
                 <button
                   className="favorites-dots"

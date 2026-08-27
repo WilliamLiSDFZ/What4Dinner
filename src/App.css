@@ -834,13 +834,35 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
+  /* The horizontal padding is cancelled by an equal negative margin, so the
+     hover highlight bleeds into the page gutter while the content stays exactly
+     where it was. */
+  padding: 16px 12px;
+  margin: 0 -12px;
   position: relative;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--accent-bg);
+  }
 }
 
-.favorites-item:last-child {
-  border-bottom: none;
+/* A pseudo-element rather than a border-bottom: inset by the same 12px, it stays
+   aligned with the heading while the highlight extends past it, and the row's
+   rounded corners have no straight border to fight. */
+.favorites-item::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.favorites-item:last-child::after {
+  display: none;
 }
 
 .favorites-rank {
