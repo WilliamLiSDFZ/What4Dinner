@@ -151,6 +151,35 @@ export async function createRecipe(recipe) {
   return res.json()
 }
 
+// Hands photos to the AI pipeline and returns at once — the work runs in the
+// background. Upload each photo with purpose 'recipe-raw' first (the AI input
+// record, distinct from the 'recipe' display photos). At most 10 keys.
+// The 202 body already carries a usable `recipeId`: the recipe row exists at
+// status 'pending' with a placeholder title, so the caller can navigate to it
+// immediately and watch it fill in. A 503 means the model or task store is
+// unreachable and nothing was written.
+export async function generateRecipe(imageKeys) {
+  const res = await apiFetch(`${BASE_URL}/recipe/generate`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageKeys }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// The generation task's current state: pending -> processing -> done | failed.
+// Progress is normally followed through the recipe's own `status`, which works
+// without a task id and survives the task's 24h TTL; this is only used to
+// recover `errorMessage` after a failure, which the recipe row does not carry.
+// A 404 means an unknown or expired task — distinct from the 503 that means the
+// task store itself is unreachable.
+export async function getGenerationTask(taskId) {
+  const res = await apiFetch(`${BASE_URL}/recipe/generate/${taskId}`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
 // Mirrors setFavorite: takes the desired state rather than toggling, so retries
 // and double-taps are idempotent and can never double-count. Resolves to the
 // refreshed { recipeId, liked, likeCount }, so no follow-up read is needed.

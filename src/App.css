@@ -392,6 +392,74 @@
   }
 }
 
+/* The only animation in the app. Built from currentColor and a transparent
+   top edge so it takes the colour of whatever it sits in, in either theme,
+   without needing a variant per surface. */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Still shows where the wait is, it just stops moving. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* Fills the page while the AI works, so the wait is the whole view rather than
+   a line of text above an empty article. */
+.detail-generating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60vh;
+  text-align: center;
+
+  & .spinner {
+    font-size: 40px;
+    color: var(--accent);
+  }
+
+  & h2 {
+    margin: 8px 0 0;
+  }
+
+  & p {
+    max-width: 42ch;
+    font-size: 15px;
+    line-height: 160%;
+    color: var(--text);
+  }
+}
+
+/* A generating card has no title or actions to speak of yet, so it reads as a
+   placeholder rather than a real recipe. */
+.dish-card.is-generating {
+  color: var(--accent);
+
+  & .spinner {
+    font-size: 15px;
+  }
+
+  & p {
+    opacity: 0.75;
+  }
+}
+
 .detail-back {
   display: inline-flex;
   align-items: center;
@@ -1373,6 +1441,35 @@
 
 /* Centred with auto margins, so it needs to be a block-level flex box with an
    intrinsic width rather than the inline-flex the other ghost buttons use. */
+/* The primary action of the photo flow, so it is filled where the manual-entry
+   button below it is outlined. */
+.add-dish-generate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 28px auto 0;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-hover, color-mix(in srgb, var(--accent) 85%, #000));
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 .add-dish-manual {
   display: flex;
   align-items: center;

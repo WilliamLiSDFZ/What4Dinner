@@ -1,13 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
 import { getRecipes, setFavorite, setLike, deleteRecipe } from '../api'
 import ConfirmDialog from '../components/ConfirmDialog'
 
+// How often to re-read the list while a recipe is still being generated.
+// Slower than the detail page's poll: this is a background nudge, not the view
+// the user is watching.
+const POLL_MS = 5000
+
 export default function Menu() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  // Set by the detail page when it deletes a recipe the AI failed to build.
+  const location = useLocation()
+  const generationError = location.state?.generationError
   // Each row already carries `favorited`, `liked` and `likeCount`, so the list
   // is the single source of truth — no separate favorites call to cross-reference.
   const [recipes, setRecipes] = useState([])
@@ -31,6 +39,32 @@ export default function Menu() {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
+
+  // Recipes the AI is still building would otherwise sit at "Generating" until
+  // the user reloaded, so the list re-reads itself until none are left. A
+  // chained timeout, not an interval, so a slow response cannot stack requests.
+  const anyGenerating = recipes.some((recipe) => recipe.status === 'pending')
+  useEffect(() => {
+    if (!anyGenerating) return
+    let timer = null
+    let active = true
+    function schedule() {
+      timer = setTimeout(async () => {
+        if (!active) return
+        try {
+          const data = await getRecipes()
+          // No setLoading here — the list is already on screen and only its
+          // contents change.
+          if (active) setRecipes(data)
+        } catch {
+          // Keep trying; the effect stops on its own once nothing is pending.
+        }
+        if (active) schedule()
+      }, POLL_MS)
+    }
+    schedule()
+    return () => { active = false; clearTimeout(timer) }
+  }, [anyGenerating])
 
   // Dismiss the row menu on Escape or a click outside it, as the Favorites page does.
   useEffect(() => {
@@ -126,26 +160,42 @@ export default function Menu() {
       <h1>{t('menu.title')}</h1>
       {loading && <p className="menu-status">{t('menu.loading')}</p>}
       {error && <p className="menu-status menu-error">{t('menu.error', { message: error })}</p>}
+      {generationError && <p className="menu-status menu-error">{generationError}</p>}
       {actionError && <p className="menu-status menu-error">{actionError}</p>}
       {!loading && !error && recipes.length === 0 && (
         <p className="menu-status">{t('menu.empty')}</p>
       )}
       {!loading && !error && recipes.length > 0 && (
         <div className="menu-grid">
-          {recipes.map((recipe) => (
+          {recipes.map((recipe) => {
+            // The AI has not filled this one in yet: its title is a backend
+            // placeholder, so the card says what is happening instead. It still
+            // opens, onto the detail page's live view of the same generation.
+            const pending = recipe.status === 'pending'
+            return (
             // The card surface opens the recipe; the title is also a real link
             // so the detail is reachable by keyboard, not only by clicking.
             <div
-              className="dish-card is-clickable"
+              className={`dish-card is-clickable${pending ? ' is-generating' : ''}`}
               key={recipe.id}
               onClick={() => navigate(`/recipe/${recipe.id}`)}
             >
               <h3>
-                <Link className="dish-card-link" to={`/recipe/${recipe.id}`}>{recipe.title}</Link>
+                <Link className="dish-card-link" to={`/recipe/${recipe.id}`}>
+                  {pending ? (
+                    <>
+                      <span className="spinner" aria-hidden="true" /> {t('menu.generating')}
+                    </>
+                  ) : recipe.title}
+                </Link>
               </h3>
-              <p>{recipe.description}</p>
+              <p>{pending ? t('menu.generatingHint') : recipe.description}</p>
               {/* Stops the action buttons from also opening the recipe. */}
               <div className="dish-card-actions" onClick={(e) => e.stopPropagation()}>
+                {/* Liking or favoriting a half-built recipe means nothing, but
+                    deleting one that is stuck does, so the row menu stays. */}
+                {!pending && (
+                  <>
                 <button
                   type="button"
                   className={`dish-action${recipe.liked ? ' is-on' : ''}`}
@@ -167,6 +217,8 @@ export default function Menu() {
                 >
                   <i className={recipe.favorited ? 'bi-star-fill' : 'bi-star'} />
                 </button>
+                  </>
+                )}
                 <div
                   className="dish-menu"
                   ref={openMenuId === recipe.id ? menuRef : null}
@@ -197,7 +249,8 @@ export default function Menu() {
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

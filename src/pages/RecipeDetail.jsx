@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ACCEPTED_IMAGE_TYPES,
@@ -7,6 +7,7 @@ import {
   setFavorite,
   setLike,
   deleteRecipe,
+  getGenerationTask,
   getUploadUrl,
   uploadToSignedUrl,
   addRecipeImages,
@@ -16,6 +17,12 @@ import ConfirmDialog from '../components/ConfirmDialog'
 // Amounts arrive in two shapes: a numeric amount + unit, or free text like
 // "两个". The add form only writes the former, but another client may have
 // written the latter, so both render.
+// How often to re-read a recipe the AI is still building, and how long to keep
+// at it. Five minutes is well past a normal generation; past that the page says
+// so rather than polling a stuck task forever.
+const POLL_MS = 3000
+const POLL_LIMIT_MS = 5 * 60 * 1000
+
 function amountLabel(ingredient) {
   if (ingredient.amountText) return ingredient.amountText
   return [ingredient.amount, ingredient.unit].filter(Boolean).join(' ')
@@ -24,6 +31,10 @@ function amountLabel(ingredient) {
 export default function RecipeDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  // Set when arriving straight from the add form. Only used to explain a
+  // failure — progress itself is followed through the recipe's own status.
+  const [searchParams] = useSearchParams()
+  const taskId = searchParams.get('task')
   const { t } = useTranslation()
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -43,6 +54,11 @@ export default function RecipeDetail() {
   const [pending, setPending] = useState([])
   const [photoError, setPhotoError] = useState(null)
   const photoInput = useRef(null)
+  // Flipped once polling has run past POLL_LIMIT_MS, so the copy can stop
+  // promising the recipe is about to appear.
+  const [pollGaveUp, setPollGaveUp] = useState(false)
+
+  const generating = recipe?.status === 'pending'
 
   // Attached photos first, then the previews. The endpoint appends by
   // displayOrder, so a preview lands at the position it already occupied and the
@@ -72,6 +88,84 @@ export default function RecipeDetail() {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [id])
+
+  // While the AI is still building this recipe, re-read it on a timer. The recipe
+  // is polled rather than the generation task because it works from every entry
+  // point — a fresh navigation, a reload, or opening the card from My Menu later,
+  // none of which carry a task id — and because the read that first sees `done`
+  // *is* the finished recipe, so there is no second round trip and no race.
+  // A chained timeout rather than an interval: a slow response delays the next
+  // request instead of stacking another on top of it.
+  useEffect(() => {
+    if (!generating || pollGaveUp) return
+    let timer = null
+    let active = true
+    const startedAt = Date.now()
+
+    function schedule() {
+      timer = setTimeout(async () => {
+        if (!active) return
+        if (Date.now() - startedAt > POLL_LIMIT_MS) {
+          setPollGaveUp(true)
+          return
+        }
+        try {
+          const data = await getRecipe(id)
+          if (!active) return
+          // Never re-raise `loading` here: it would flash the loading line on
+          // every tick. Only the recipe itself is replaced.
+          setRecipe(data)
+          if (data.status === 'pending') schedule()
+        } catch {
+          // A transient failure mid-generation is not worth tearing the page
+          // down for — keep trying until the time limit runs out.
+          if (active) schedule()
+        }
+      }, POLL_MS)
+    }
+    schedule()
+    return () => { active = false; clearTimeout(timer) }
+  }, [id, generating, pollGaveUp])
+
+  // A failed generation leaves an empty recipe behind that is of no use to
+  // anyone, so it is removed and the reason carried back to the menu. The recipe
+  // row records *that* it failed but not why, so the task — when we have one —
+  // is what supplies the message.
+  useEffect(() => {
+    if (recipe?.status !== 'failed') return
+    let active = true
+    ;(async () => {
+      let message = null
+      if (taskId) {
+        try {
+          const task = await getGenerationTask(taskId)
+          message = task.errorMessage
+        } catch {
+          // The task may have expired or the store may be down; the deletion
+          // below still matters, so fall back to the reasonless wording.
+          message = null
+        }
+      }
+      try {
+        await deleteRecipe(recipe.id)
+      } catch (err) {
+        // Better to strand the user on a page that explains itself than to
+        // bounce them to the menu having silently failed to clean up.
+        if (active) setError(t('menu.deleteFailed', { message: err.message }))
+        return
+      }
+      if (!active) return
+      navigate('/menu', {
+        replace: true,
+        state: {
+          generationError: message
+            ? t('menu.generationFailed', { message })
+            : t('menu.generationFailedNoReason'),
+        },
+      })
+    })()
+    return () => { active = false }
+  }, [recipe, taskId, navigate, t])
 
   useEffect(() => {
     if (!lightboxUrl) return
@@ -238,7 +332,19 @@ export default function RecipeDetail() {
       {loading && <p className="menu-status">{t('detail.loading')}</p>}
       {error && <p className="menu-status menu-error">{t('detail.error', { message: error })}</p>}
 
-      {recipe && (
+      {/* The whole article is replaced while the AI works: at this point the
+          recipe is a placeholder title and no steps, so there is nothing worth
+          rendering behind the spinner. A `failed` recipe falls through to
+          nothing, because the effect above is already deleting it and leaving. */}
+      {generating && (
+        <div className="detail-generating">
+          <span className="spinner" aria-hidden="true" />
+          <h2>{t('detail.generatingTitle')}</h2>
+          <p>{pollGaveUp ? t('detail.generatingSlow') : t('detail.generatingHint')}</p>
+        </div>
+      )}
+
+      {recipe && !generating && recipe.status !== 'failed' && (
         <article className="detail">
           <header className="detail-header">
             <div className="detail-header-text">

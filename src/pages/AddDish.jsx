@@ -6,10 +6,15 @@ import {
   getIngredients,
   createIngredient,
   createRecipe,
+  generateRecipe,
   getUploadUrl,
   uploadToSignedUrl,
 } from '../api'
 import { SettingsContext } from '../SettingsContext'
+
+// POST /v1/recipe/generate rejects more than this, so the dropzone stops taking
+// photos at the limit rather than failing after the user has picked them.
+const MAX_GENERATE_PHOTOS = 10
 
 export default function AddDish() {
   const { t } = useTranslation()
@@ -28,8 +33,14 @@ export default function AddDish() {
   const [prepTime, setPrepTime] = useState('')
   const [cookTime, setCookTime] = useState('')
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  // Where to go once the work is done, or null. Doubles as the "nothing left to
+  // lose" flag that stands the exit guard down, so it has to be set before the
+  // navigation rather than alongside it.
+  const [redirectTo, setRedirectTo] = useState(null)
   const [saveError, setSaveError] = useState(null)
+  const [generating, setGenerating] = useState(false)
+  const [generateError, setGenerateError] = useState(null)
+  const [photoLimitHit, setPhotoLimitHit] = useState(false)
   // One row per cooking step:
   // { id, instruction, required, images: [{ id, file, url }], imageIndex }.
   // `imageIndex` is view-only carousel position — it lives on the step so that
@@ -95,9 +106,10 @@ export default function AddDish() {
 
   const isDirty =
     title.trim() !== '' || description.trim() !== '' || steps.length > 0 || images.length > 0
-  // Once saved there is nothing left to lose, so both guards stand down —
-  // otherwise the redirect below would ask about work we just persisted.
-  const guardExit = isDirty && !saved
+  // Once the work has been handed to the backend there is nothing left to lose,
+  // so both guards stand down — otherwise the redirect below would ask about
+  // work we just persisted, or about photos the AI pipeline already has.
+  const guardExit = isDirty && !redirectTo
 
   // Covers the sidebar tabs, the Return button's navigate(-1), and the browser's
   // back/forward buttons. Requires the data router set up in App.jsx.
@@ -105,11 +117,11 @@ export default function AddDish() {
     ({ currentLocation, nextLocation }) => guardExit && currentLocation.pathname !== nextLocation.pathname,
   )
 
-  // Navigating from an effect rather than the submit handler: the blocker has to
-  // re-render with `saved` true first, or its predicate would still be armed.
+  // Navigating from an effect rather than the handler: the blocker has to
+  // re-render with the guard disarmed first, or its predicate would still fire.
   useEffect(() => {
-    if (saved) navigate('/menu')
-  }, [saved, navigate])
+    if (redirectTo) navigate(redirectTo)
+  }, [redirectTo, navigate])
 
   // The other half: refreshing, closing the tab, or navigating away from the app
   // entirely. The browser owns this dialog, so its wording cannot be set here.
@@ -152,12 +164,44 @@ export default function AddDish() {
   }, [pickerStepId, pendingIngredient])
 
   function addFiles(fileList) {
+    // The four-type allowlist rather than a loose image/* test: these photos are
+    // now uploaded for real, and getUploadUrl rejects anything else.
+    const accepted = [...fileList].filter((file) => ACCEPTED_IMAGE_TYPES.includes(file.type))
+    // Trim to what the endpoint will take, and say so rather than silently
+    // dropping the tail.
+    const room = MAX_GENERATE_PHOTOS - images.length
+    setPhotoLimitHit(accepted.length > room)
     // Mint the ids and object URLs out here: doing it inside the updater would
-    // run twice in development and leak the first set of blob URLs.
-    const added = [...fileList]
-      .filter((file) => file.type.startsWith('image/'))
+    // run twice in development and leak the first set of blob URLs. Only the
+    // photos that fit get one, so the discarded ones never allocate.
+    const added = accepted
+      .slice(0, Math.max(room, 0))
       .map((file) => ({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file) }))
+    if (added.length === 0) return
     setImages((prev) => [...prev, ...added])
+  }
+
+  // Hands the picked photos to the AI pipeline: every file up to GCS under the
+  // 'recipe-raw' purpose — the AI input record, not the 'recipe' display photos —
+  // then one generate call for the whole batch. The recipe row exists as soon as
+  // that returns, so the detail page can be opened straight away and poll there.
+  async function startGeneration() {
+    setGenerating(true)
+    setGenerateError(null)
+    try {
+      const keys = await Promise.all(images.map(async (image) => {
+        const target = await getUploadUrl('recipe-raw', image.file.type)
+        await uploadToSignedUrl(target, image.file)
+        return target.objectName
+      }))
+      const task = await generateRecipe(keys)
+      // The task id rides along so a failure can be explained: the recipe row
+      // records that it failed but not why.
+      setRedirectTo(`/recipe/${task.recipeId}?task=${task.taskId}`)
+    } catch (err) {
+      setGenerateError(t('addDish.generateFailed', { message: err.message }))
+      setGenerating(false)
+    }
   }
 
   function removeImage(id) {
@@ -166,6 +210,8 @@ export default function AddDish() {
     const going = images.find((image) => image.id === id)
     if (going) URL.revokeObjectURL(going.url)
     setImages((prev) => prev.filter((image) => image.id !== id))
+    // There is room again, so the limit notice no longer applies.
+    setPhotoLimitHit(false)
   }
 
   function addStep() {
@@ -393,7 +439,7 @@ export default function AddDish() {
           })),
         })),
       })
-      setSaved(true)
+      setRedirectTo('/menu')
     } catch (err) {
       setSaveError(
         err.message === 'HTTP 400'
@@ -453,7 +499,7 @@ export default function AddDish() {
             <input
               ref={inputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPTED_IMAGE_TYPES.join(',')}
               multiple
               hidden
               onChange={(e) => { addFiles(e.target.files); e.target.value = '' }}
@@ -474,6 +520,25 @@ export default function AddDish() {
                   </li>
                 ))}
               </ul>
+            )}
+
+            {photoLimitHit && (
+              <p className="menu-status">
+                {t('addDish.photoLimit', { count: MAX_GENERATE_PHOTOS })}
+              </p>
+            )}
+            {generateError && <p className="menu-status menu-error">{generateError}</p>}
+
+            {images.length > 0 && (
+              <button
+                type="button"
+                className="add-dish-generate"
+                disabled={generating}
+                onClick={startGeneration}
+              >
+                <i className="bi-stars" />{' '}
+                {generating ? t('addDish.generating') : t('addDish.generate')}
+              </button>
             )}
 
             <button className="add-dish-manual" onClick={() => setManual(true)}>

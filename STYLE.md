@@ -240,6 +240,35 @@ Same as card, but with `border-style: dashed` and `cursor: pointer`. Avatar insi
 - **Cards:** `0.2s` for box-shadow, border-color
 - **Easing:** default (no explicit easing = `ease`)
 
+## Loading / progress
+
+One spinner for the whole app — `.spinner`. It is built from `currentColor` with a transparent top edge, so it takes the colour and size of whatever it sits in rather than needing a variant per surface: set `font-size` and `color` on the parent.
+
+```css
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; opacity: 0.5; }
+}
+```
+
+This is the **only** animation in the app — reuse it rather than adding another `@keyframes`. Two sizes are in use: inline in a card title (`font-size: 15px`) and page-filling (`font-size: 40px`, inside `.detail-generating`).
+
+For a wait that owns the whole page, centre a spinner, an `<h2>`, and one line of copy: say roughly how long it takes and that the user may leave. `.detail-generating` is that pattern.
+
 ## Icons
 
 Bootstrap Icons via CSS classes: `<i className="bi-icon-name" />`. Common icons used: `bi-plus-lg`, `bi-arrow-left`, `bi-search`, `bi-arrow-clockwise`, `bi-sun`, `bi-moon`, `bi-display`.
