@@ -1470,6 +1470,67 @@
   }
 }
 
+/* The rules are drawn with a flex child on each side rather than a border, so
+   they shrink around whatever the label's translation happens to be. */
+.add-dish-or {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0 4px;
+  font-size: 14px;
+  color: var(--text);
+  opacity: 0.7;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1 1 0;
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+.add-dish-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  /* The label and hint sit tighter to the box than the form's fields do. */
+  & .add-dish-hint {
+    margin: 0;
+  }
+}
+
+/* Outlined like .add-dish-manual: .add-dish-generate stays the one filled,
+   primary action on the page. */
+.add-dish-import {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 4px auto 0;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-bg);
+    color: var(--text-h);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .add-dish-manual {
   display: flex;
   align-items: center;

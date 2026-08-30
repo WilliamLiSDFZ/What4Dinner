@@ -168,6 +168,26 @@ export async function generateRecipe(imageKeys) {
   return res.json()
 }
 
+// The same pipeline as generateRecipe, from a Xiaohongshu share link instead of
+// photos: the backend fetches the post's text and images itself, so there is no
+// upload-url step here and the client sends no keys. Having the post's body text
+// gives the model far more to work with than photos alone.
+// Pass the share text *verbatim* — the link inside it must keep its xsec_token
+// or the import is refused. The 202 body and the task it names are identical to
+// the photo path's, so the caller polls it through getGenerationTask all the same.
+// A 400 means no usable link was found in the text; a 422 means the link lost its
+// token. Anything that goes wrong after the 202 — expired token, deleted post —
+// arrives as a failed task rather than an error here.
+export async function generateRecipeFromLink(shareText) {
+  const res = await apiFetch(`${BASE_URL}/recipe/generate/link`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ shareText }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
 // The generation task's current state: pending -> processing -> done | failed.
 // Progress is normally followed through the recipe's own `status`, which works
 // without a task id and survives the task's 24h TTL; this is only used to

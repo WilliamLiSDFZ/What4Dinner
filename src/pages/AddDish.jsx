@@ -7,6 +7,7 @@ import {
   createIngredient,
   createRecipe,
   generateRecipe,
+  generateRecipeFromLink,
   getUploadUrl,
   uploadToSignedUrl,
 } from '../api'
@@ -41,6 +42,11 @@ export default function AddDish() {
   const [generating, setGenerating] = useState(false)
   const [generateError, setGenerateError] = useState(null)
   const [photoLimitHit, setPhotoLimitHit] = useState(false)
+  // The link import runs the same pipeline but is tracked separately, so an
+  // error on one path cannot render under the other path's button.
+  const [shareText, setShareText] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [linkError, setLinkError] = useState(null)
   // One row per cooking step:
   // { id, instruction, required, images: [{ id, file, url }], imageIndex }.
   // `imageIndex` is view-only carousel position — it lives on the step so that
@@ -106,6 +112,7 @@ export default function AddDish() {
 
   const isDirty =
     title.trim() !== '' || description.trim() !== '' || steps.length > 0 || images.length > 0
+    || shareText.trim() !== ''
   // Once the work has been handed to the backend there is nothing left to lose,
   // so both guards stand down — otherwise the redirect below would ask about
   // work we just persisted, or about photos the AI pipeline already has.
@@ -201,6 +208,28 @@ export default function AddDish() {
     } catch (err) {
       setGenerateError(t('addDish.generateFailed', { message: err.message }))
       setGenerating(false)
+    }
+  }
+
+  // The link half of the same pipeline. The backend fetches the post's text and
+  // photos itself, so there is nothing to upload — one call, then the identical
+  // hand-off to the detail page, which polls it exactly as it polls a photo
+  // generation.
+  async function startImport() {
+    setImporting(true)
+    setLinkError(null)
+    try {
+      // Sent verbatim: trimming the blurb around the link risks taking the
+      // xsec_token with it, and the backend extracts the link itself.
+      const task = await generateRecipeFromLink(shareText)
+      setRedirectTo(`/recipe/${task.recipeId}?task=${task.taskId}`)
+    } catch (err) {
+      // Both of these are things the user can act on, so they get their own
+      // wording rather than a bare status code.
+      if (err.message === 'HTTP 400') setLinkError(t('addDish.importNoLink'))
+      else if (err.message === 'HTTP 422') setLinkError(t('addDish.importNoToken'))
+      else setLinkError(t('addDish.importFailed', { message: err.message }))
+      setImporting(false)
     }
   }
 
@@ -540,6 +569,35 @@ export default function AddDish() {
                 {generating ? t('addDish.generating') : t('addDish.generate')}
               </button>
             )}
+
+            <div className="add-dish-or"><span>{t('addDish.or')}</span></div>
+
+            <div className="add-dish-link">
+              <label className="add-dish-label" htmlFor="share-text">
+                {t('addDish.linkLabel')}
+              </label>
+              {/* A textarea, not an input: what gets pasted is the whole share
+                  blurb — title, emoji and URL — not a bare link. */}
+              <textarea
+                id="share-text"
+                className="add-dish-textarea"
+                rows={3}
+                value={shareText}
+                placeholder={t('addDish.linkPlaceholder')}
+                onChange={(e) => setShareText(e.target.value)}
+              />
+              <p className="add-dish-hint">{t('addDish.linkHint')}</p>
+              {linkError && <p className="menu-status menu-error">{linkError}</p>}
+              <button
+                type="button"
+                className="add-dish-import"
+                disabled={!shareText.trim() || importing}
+                onClick={startImport}
+              >
+                <i className="bi-link-45deg" />{' '}
+                {importing ? t('addDish.importing') : t('addDish.import')}
+              </button>
+            </div>
 
             <button className="add-dish-manual" onClick={() => setManual(true)}>
               <i className="bi-pencil" /> {t('addDish.manualEntry')}
