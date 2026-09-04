@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
 import { getRecipes, setFavorite, setLike, deleteRecipe } from '../api'
 import ConfirmDialog from '../components/ConfirmDialog'
+import DishCover from '../components/DishCover'
 
 // How often to re-read the list while a recipe is still being generated.
 // Slower than the detail page's poll: this is a background nudge, not the view
@@ -180,6 +181,9 @@ export default function Menu() {
               key={recipe.id}
               onClick={() => navigate(`/recipe/${recipe.id}`)}
             >
+              {/* Null while a recipe is still being generated, which is exactly
+                  when the placeholder is the honest thing to show. */}
+              <DishCover url={recipe.coverUrl} className="dish-cover" />
               <h3>
                 <Link className="dish-card-link" to={`/recipe/${recipe.id}`}>
                   {pending ? (

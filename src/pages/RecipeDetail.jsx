@@ -8,6 +8,7 @@ import {
   setLike,
   deleteRecipe,
   getGenerationTask,
+  generateRecipeImage,
   getUploadUrl,
   uploadToSignedUrl,
   addRecipeImages,
@@ -57,6 +58,11 @@ export default function RecipeDetail() {
   // Flipped once polling has run past POLL_LIMIT_MS, so the copy can stop
   // promising the recipe is about to appear.
   const [pollGaveUp, setPollGaveUp] = useState(false)
+  // Id of an AI dish-photo task in flight, or null. Doubles as the busy flag.
+  // Deliberately not persisted: a reload loses the live feedback, but the photo
+  // still lands and simply shows up on a later visit.
+  const [imageTask, setImageTask] = useState(null)
+  const [imageError, setImageError] = useState(null)
 
   const generating = recipe?.status === 'pending'
 
@@ -71,6 +77,10 @@ export default function RecipeDetail() {
       uploading: image.uploading,
       failed: image.failed,
     })),
+    // A photo the AI is still painting has no url to show — the backend leaves
+    // it out of the recipe until it is finished, precisely so no half-made image
+    // is ever served. The placeholder slide is what makes the wait visible.
+    ...(imageTask ? [{ key: 'generating', generating: true }] : []),
   ]
   const photoAt = Math.min(photoIndex, Math.max(photos.length - 1, 0))
 
@@ -126,6 +136,68 @@ export default function RecipeDetail() {
     schedule()
     return () => { active = false; clearTimeout(timer) }
   }, [id, generating, pollGaveUp])
+
+  // Watches an AI dish photo being painted. Same chained-timeout shape and same
+  // limits as the recipe poll above, but against the task rather than the recipe:
+  // the recipe's own status stays `done` throughout — only the image row is
+  // pending, and that row is hidden until it is finished.
+  useEffect(() => {
+    if (!imageTask) return
+    let timer = null
+    let active = true
+    const startedAt = Date.now()
+
+    function schedule() {
+      timer = setTimeout(async () => {
+        if (!active) return
+        if (Date.now() - startedAt > POLL_LIMIT_MS) {
+          setImageTask(null)
+          setImageError(t('detail.photoGenerateFailed', { message: 'timeout' }))
+          return
+        }
+        try {
+          const task = await getGenerationTask(imageTask)
+          if (!active) return
+          if (task.status === 'done') {
+            // One read, not a re-poll: the finished row is in the recipe now.
+            const data = await getRecipe(id)
+            if (!active) return
+            setRecipe(data)
+            setImageTask(null)
+            // Land on the photo that was just made — it appends, so it is last.
+            setPhotoIndex(Math.max((data.images?.length ?? 1) - 1, 0))
+            return
+          }
+          if (task.status === 'failed') {
+            setImageTask(null)
+            setImageError(t('detail.photoGenerateFailed', {
+              message: task.errorMessage || 'unknown',
+            }))
+            return
+          }
+          schedule()
+        } catch {
+          // Transient failures are not worth abandoning the wait over; the time
+          // limit above is what eventually gives up.
+          if (active) schedule()
+        }
+      }, POLL_MS)
+    }
+    schedule()
+    return () => { active = false; clearTimeout(timer) }
+  }, [imageTask, id, t])
+
+  async function startImageGeneration() {
+    setImageError(null)
+    try {
+      const task = await generateRecipeImage(id)
+      setImageTask(task.taskId)
+      // Point at the placeholder slide, which is appended after the real photos.
+      setPhotoIndex(photos.length)
+    } catch (err) {
+      setImageError(t('detail.photoGenerateFailed', { message: err.message }))
+    }
+  }
 
   // A failed generation leaves an empty recipe behind that is of no use to
   // anyone, so it is removed and the reason carried back to the menu. The recipe
@@ -426,7 +498,12 @@ export default function RecipeDetail() {
                             style={{ '--offset': offset }}
                             aria-hidden={distance !== 0}
                           >
-                            {distance === 0 ? (
+                            {photo.generating ? (
+                              <div className="detail-slide-generating">
+                                <span className="spinner" aria-hidden="true" />
+                                <span>{t('detail.generatingPhoto')}</span>
+                              </div>
+                            ) : distance === 0 ? (
                               <button
                                 type="button"
                                 className="detail-slide-open"
@@ -484,15 +561,41 @@ export default function RecipeDetail() {
                   </div>
                   {/* Outside .detail-carousel, whose height the absolutely
                       positioned count is measured against. */}
-                  <button
-                    type="button"
-                    className="step-add-image"
-                    onClick={() => photoInput.current?.click()}
-                  >
-                    <i className="bi-plus-lg" /> {t('detail.addPhoto')}
-                  </button>
+                  <div className="detail-photo-actions">
+                    <button
+                      type="button"
+                      className="step-add-image"
+                      onClick={() => photoInput.current?.click()}
+                    >
+                      <i className="bi-plus-lg" /> {t('detail.addPhoto')}
+                    </button>
+                    <button
+                      type="button"
+                      className="step-add-image"
+                      disabled={!!imageTask}
+                      onClick={startImageGeneration}
+                    >
+                      <i className="bi-stars" />{' '}
+                      {imageTask ? t('detail.generatingPhoto') : t('detail.generatePhoto')}
+                    </button>
+                  </div>
                 </>
               )}
+              {/* The empty state's dropzone is its own add affordance, so only
+                  the AI button needs a home there — and it is the most useful
+                  thing to offer a recipe with no photos at all. */}
+              {photos.length === 0 && (
+                <button
+                  type="button"
+                  className="step-add-image detail-generate-photo"
+                  disabled={!!imageTask}
+                  onClick={startImageGeneration}
+                >
+                  <i className="bi-stars" />{' '}
+                  {imageTask ? t('detail.generatingPhoto') : t('detail.generatePhoto')}
+                </button>
+              )}
+              {imageError && <p className="menu-status menu-error">{imageError}</p>}
               {photoError && <p className="menu-status menu-error">{photoError}</p>}
               <input
                 ref={photoInput}

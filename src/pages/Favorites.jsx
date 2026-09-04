@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getFavorites, setFavorite } from '../api'
+import DishCover from '../components/DishCover'
 
 export default function Favorites() {
   const { t } = useTranslation()
@@ -76,6 +77,7 @@ export default function Favorites() {
               onClick={() => navigate(`/recipe/${recipe.id}`)}
             >
               <span className="favorites-rank">{index + 1}</span>
+              <DishCover url={recipe.coverUrl} className="favorites-thumb" />
               <div className="favorites-info">
                 <h3>
                   <Link className="dish-card-link" to={`/recipe/${recipe.id}`}>{recipe.title}</Link>

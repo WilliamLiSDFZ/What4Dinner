@@ -188,6 +188,24 @@ export async function generateRecipeFromLink(shareText) {
   return res.json()
 }
 
+// Paints a photo of the finished dish and attaches it to the recipe. No request
+// body — everything the models need is already on the recipe and its original
+// photos. Returns 202 and is polled through the same getGenerationTask as recipe
+// generation; the extra `imageId` names the recipe_images row being filled in.
+// While it runs that row is deliberately *not* returned by getRecipe, so there is
+// never a half-made image to filter out — but nothing appears either, so the wait
+// has to be shown client-side.
+// Repeat calls are allowed and simply append another image. Each one is a real
+// image-model call with no per-family quota, so do not fire it speculatively.
+export async function generateRecipeImage(recipeId) {
+  const res = await apiFetch(`${BASE_URL}/recipe/${recipeId}/image/generate`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
 // The generation task's current state: pending -> processing -> done | failed.
 // Progress is normally followed through the recipe's own `status`, which works
 // without a task id and survives the task's 24h TTL; this is only used to

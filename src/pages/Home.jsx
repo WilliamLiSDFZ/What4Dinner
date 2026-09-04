@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
 import { suggestions, initialDishes } from '../data'
+import DishCover from '../components/DishCover'
 
 export default function Home() {
   const { t } = useTranslation()
@@ -25,6 +26,9 @@ export default function Home() {
       <div className="menu-grid">
         {initialDishes.map((dish) => (
           <div className="dish-card" key={dish.id}>
+            {/* Seed data from data.js carries no images, so these are always the
+                placeholder — this page is still presentational. */}
+            <DishCover className="dish-cover" />
             <h3>{dish.name}</h3>
             <p>{dish.description}</p>
           </div>
