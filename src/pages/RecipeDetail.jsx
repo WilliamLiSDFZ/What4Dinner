@@ -12,6 +12,9 @@ import {
   getUploadUrl,
   uploadToSignedUrl,
   addRecipeImages,
+  getShoppingList,
+  addToShoppingList,
+  removeFromShoppingList,
 } from '../api'
 import ConfirmDialog from '../components/ConfirmDialog'
 
@@ -41,6 +44,10 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState(null)
+  // Whether this recipe is on the family's shopping list. The recipe payload has
+  // no such flag, so it comes from the list itself; null until that read lands,
+  // and the cart button stays hidden rather than guessing.
+  const [onList, setOnList] = useState(null)
   // One carousel position per step, keyed by step id.
   const [imageIndex, setImageIndex] = useState({})
   const [lightboxUrl, setLightboxUrl] = useState(null)
@@ -96,6 +103,15 @@ export default function RecipeDetail() {
       .then((data) => { if (active) setRecipe(data) })
       .catch((err) => { if (active) setError(err.message) })
       .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [id])
+
+  // A separate effect so a shopping-list failure cannot blank the recipe.
+  useEffect(() => {
+    let active = true
+    getShoppingList()
+      .then((data) => { if (active) setOnList(data.recipes.some((r) => r.id === id)) })
+      .catch(() => {})
     return () => { active = false }
   }, [id])
 
@@ -290,6 +306,24 @@ export default function RecipeDetail() {
     }
   }
 
+  // Optimistic with rollback. Both endpoints return 204 with no body, so the
+  // local value stands once the request succeeds.
+  async function toggleShopping() {
+    const next = !onList
+    setActionError(null)
+    setOnList(next)
+    try {
+      if (next) await addToShoppingList(recipe.id)
+      else await removeFromShoppingList(recipe.id)
+    } catch (err) {
+      setOnList(!next)
+      setActionError(
+        next && err.message === 'HTTP 400' ? t('shopping.noIngredientsOnRecipe')
+          : t('shopping.updateFailed', { message: err.message }),
+      )
+    }
+  }
+
   async function confirmDelete() {
     setDeleting(true)
     setDeleteError(null)
@@ -458,6 +492,17 @@ export default function RecipeDetail() {
               >
                 <i className={recipe.favorited ? 'bi-star-fill' : 'bi-star'} />
               </button>
+              {onList !== null && (
+                <button
+                  type="button"
+                  className={`dish-action${onList ? ' is-on' : ''}`}
+                  aria-pressed={onList}
+                  aria-label={onList ? t('detail.removeFromShopping') : t('detail.addToShopping')}
+                  onClick={toggleShopping}
+                >
+                  <i className={onList ? 'bi-cart-check-fill' : 'bi-cart-plus'} />
+                </button>
+              )}
               <button
                 type="button"
                 className="dish-action"

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SearchBar from '../components/SearchBar'
-import { getRecipes, setFavorite, setLike, deleteRecipe } from '../api'
+import { getRecipes, setFavorite, setLike, deleteRecipe, addToShoppingList } from '../api'
 import ConfirmDialog from '../components/ConfirmDialog'
 import DishCover from '../components/DishCover'
 
@@ -23,6 +23,9 @@ export default function Menu() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState(null)
+  // Confirmation after adding a recipe to the shopping list, which otherwise
+  // changes nothing visible on this page.
+  const [actionNotice, setActionNotice] = useState(null)
   // Id of the card whose row menu is open — only one at a time, so opening a
   // second card's menu closes the first for free.
   const [openMenuId, setOpenMenuId] = useState(null)
@@ -114,6 +117,23 @@ export default function Menu() {
     }
   }
 
+  // The rows carry no "on the list" flag, so this is add-only; the PUT is
+  // idempotent, so adding a recipe that is already there is harmless.
+  async function addToShopping(recipe) {
+    setOpenMenuId(null)
+    setActionError(null)
+    setActionNotice(null)
+    try {
+      await addToShoppingList(recipe.id)
+      setActionNotice(t('shopping.added', { title: recipe.title }))
+    } catch (err) {
+      setActionError(
+        err.message === 'HTTP 400' ? t('shopping.noIngredientsOnRecipe')
+          : t('shopping.addFailed', { message: err.message }),
+      )
+    }
+  }
+
   function patchRecipe(id, fields) {
     setRecipes((prev) => prev.map((recipe) => (
       recipe.id === id ? { ...recipe, ...fields } : recipe
@@ -163,6 +183,7 @@ export default function Menu() {
       {error && <p className="menu-status menu-error">{t('menu.error', { message: error })}</p>}
       {generationError && <p className="menu-status menu-error">{generationError}</p>}
       {actionError && <p className="menu-status menu-error">{actionError}</p>}
+      {actionNotice && <p className="menu-status">{actionNotice}</p>}
       {!loading && !error && recipes.length === 0 && (
         <p className="menu-status">{t('menu.empty')}</p>
       )}
@@ -240,6 +261,16 @@ export default function Menu() {
                   {openMenuId === recipe.id && (
                     // Opens upward: the actions sit at the card's bottom edge.
                     <div className="dish-menu-dropdown" role="menu">
+                      {!pending && (
+                        <button
+                          type="button"
+                          className="dish-menu-item"
+                          role="menuitem"
+                          onClick={() => addToShopping(recipe)}
+                        >
+                          <i className="bi-cart-plus" /> {t('shopping.add')}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="dish-menu-item"

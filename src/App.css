@@ -1372,6 +1372,21 @@
   border-bottom: none;
 }
 
+.shopping-list li label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+}
+
+/* Bought ingredients, both in the list and under each dish that uses them. */
+.shopping-list li.is-checked,
+.shopping-dish ul li.is-checked {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
 .shopping-dish {
   padding: 20px;
   border: 1px solid var(--border);
@@ -1384,8 +1399,20 @@
   margin-bottom: 0;
 }
 
+.shopping-dish-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  & h3 {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .shopping-dish h3 {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-h);

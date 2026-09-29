@@ -61,7 +61,9 @@
     "like": "点赞",
     "unlike": "取消点赞",
     "favorite": "收藏",
-    "unfavorite": "取消收藏"
+    "unfavorite": "取消收藏",
+    "addToShopping": "加入购物清单",
+    "removeFromShopping": "从购物清单移除"
   },
   "favorites": {
     "title": "收藏",
@@ -78,7 +80,20 @@
     "dishes": "菜品",
     "clear": "清空",
     "noIngredients": "清单里没有食材。",
-    "noDishes": "清单里没有菜品。"
+    "noDishes": "清单里没有菜品。",
+    "loading": "正在加载购物清单…",
+    "error": "无法加载购物清单：{{message}}",
+    "remove": "从清单中移除“{{title}}”",
+    "confirmClear": "清空购物清单？清单由全家共享。",
+    "clearing": "正在清空…",
+    "clearFailed": "无法清空清单：{{message}}",
+    "removeFailed": "无法移除：{{message}}",
+    "checkFailed": "无法更新食材：{{message}}",
+    "noIngredientsOnRecipe": "这道菜没有可采购的食材。",
+    "add": "加入购物清单",
+    "added": "已将“{{title}}”加入购物清单。",
+    "addFailed": "无法加入购物清单：{{message}}",
+    "updateFailed": "无法更新购物清单：{{message}}"
   },
   "settings": {
     "title": "设置",

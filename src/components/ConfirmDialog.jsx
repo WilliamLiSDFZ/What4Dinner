@@ -1,4 +1,5 @@
-// Shared by the delete confirmations on My Menu and the recipe detail page.
+// Shared by the delete confirmations on My Menu and the recipe detail page, and
+// the Shopping List's Clear.
 // AddDish's leave prompt deliberately does not use this: it is driven by
 // useBlocker and has no async or error state, so folding it in would mean
 // widening this component for a single caller.

@@ -302,3 +302,46 @@ export async function getRecipe(recipeId) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+// The family's shared shopping list. Each recipe carries its own ingredients
+// (no checked state — a shared ingredient appears under every recipe using it),
+// while the top-level `ingredients` is de-duplicated and owns `checked`.
+// Recipe entries here are slimmer than getRecipes' rows: no like/favorite state.
+export async function getShoppingList() {
+  const res = await apiFetch(`${BASE_URL}/shopping-list`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// 204 No Content, so no res.json(). Idempotent: re-adding a recipe already on
+// the list keeps its checked state. A 400 means the recipe has no ingredients.
+export async function addToShoppingList(recipeId) {
+  const res = await apiFetch(`${BASE_URL}/shopping-list/recipes/${recipeId}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+// 204 No Content. Ingredients still used by another recipe on the list stay, and
+// their checked state is recomputed server-side — re-read the list afterwards
+// rather than deriving it locally.
+export async function removeFromShoppingList(recipeId) {
+  const res = await apiFetch(`${BASE_URL}/shopping-list/recipes/${recipeId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+// Takes the desired state rather than toggling, so it is idempotent. Applies to
+// the ingredient for every recipe on the list that uses it.
+export async function setIngredientChecked(ingredientId, checked) {
+  const res = await apiFetch(`${BASE_URL}/shopping-list/ingredients/${ingredientId}`, {
+    method: 'PATCH',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ checked }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}

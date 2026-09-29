@@ -61,7 +61,9 @@
     "like": "Like",
     "unlike": "Remove like",
     "favorite": "Favorite",
-    "unfavorite": "Unfavorite"
+    "unfavorite": "Unfavorite",
+    "addToShopping": "Add to shopping list",
+    "removeFromShopping": "Remove from shopping list"
   },
   "favorites": {
     "title": "Favorites",
@@ -78,7 +80,20 @@
     "dishes": "Dishes",
     "clear": "Clear",
     "noIngredients": "No ingredients on the list.",
-    "noDishes": "No dishes on the list."
+    "noDishes": "No dishes on the list.",
+    "loading": "Loading shopping list…",
+    "error": "Couldn't load the shopping list: {{message}}",
+    "remove": "Remove “{{title}}” from the list",
+    "confirmClear": "Clear the shopping list? It is shared with your whole family.",
+    "clearing": "Clearing…",
+    "clearFailed": "Couldn't clear the list: {{message}}",
+    "removeFailed": "Couldn't remove: {{message}}",
+    "checkFailed": "Couldn't update ingredient: {{message}}",
+    "noIngredientsOnRecipe": "This recipe has no ingredients to shop for.",
+    "add": "Add to shopping list",
+    "added": "Added “{{title}}” to the shopping list.",
+    "addFailed": "Couldn't add to the shopping list: {{message}}",
+    "updateFailed": "Couldn't update the shopping list: {{message}}"
   },
   "settings": {
     "title": "Settings",
